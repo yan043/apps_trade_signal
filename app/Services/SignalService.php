@@ -240,7 +240,7 @@ class SignalService
         $target     = $last['close'] + ($atr * $multiplier);
         $gain       = (($target - $last['close']) / $last['close']) * 100;
 
-        if (($market === 'crypto' && $gain >= 10) || ($market === 'stock' && $gain >= 3))
+        if (($market === 'crypto' && $gain >= 15) || ($market === 'stock' && $gain >= 10))
         {
             return [
                 'entry'  => $last['close'],
