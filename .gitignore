@@ -5,18 +5,18 @@
 /pnpm-lock.yaml
 /yarn.lock
 
-# .env
-# .env.*
-# !.env.example
+.env
+.env.*
+!.env.example
 
 .phpunit.cache/
 /.phpunit.result.cache
 
-# storage/
-# !storage/app/public/
+storage/
+!storage/app/public/
 public/storage
 public/upload_*
-# bootstrap/cache/
+bootstrap/cache/
 storage/*.key
 storage/pail
 
