@@ -101,9 +101,10 @@ class SignalService
                     'expected_gain' => $signal['gain'],
                     'reason'        => $signal['reason'],
                 ]);
-            }
 
-            $this->sendTelegram($asset->symbol, $signal);
+                \Log::info("Signal created for {$asset->symbol}: Entry {$signal['entry']}, Target {$signal['target']}, SL {$signal['sl']}, Gain {$signal['gain']}%");
+                $this->sendTelegram($asset->symbol, $signal);
+            }
         }
 
         Signal::query()->delete();
@@ -222,7 +223,7 @@ class SignalService
         }
 
         $last   = end($candles);
-        if (! is_array($last) || ! isset($last['close']))
+        if (! is_array($last) || ! isset($last['close']) || $last['close'] <= 0)
         {
             return null;
         }
@@ -230,11 +231,16 @@ class SignalService
         $ma20   = array_sum(array_slice($closes, -20)) / 20;
         $atr    = $this->calcATR($candles, 14);
 
+        if ($atr <= 0)
+        {
+            return null;
+        }
+
         $multiplier = $market === 'crypto' ? 2.5 : 1.2;
         $target     = $last['close'] + ($atr * $multiplier);
         $gain       = (($target - $last['close']) / $last['close']) * 100;
 
-        if (($market === 'crypto' && $gain >= 5) || ($market === 'stock' && $gain >= 1))
+        if (($market === 'crypto' && $gain >= 10) || ($market === 'stock' && $gain >= 3))
         {
             return [
                 'entry'  => $last['close'],
