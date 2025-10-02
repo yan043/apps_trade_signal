@@ -101,9 +101,9 @@ class SignalService
                     'expected_gain' => $signal['gain'],
                     'reason'        => $signal['reason'],
                 ]);
-
-                $this->sendTelegram($asset->symbol, $signal);
             }
+
+            $this->sendTelegram($asset->symbol, $signal);
         }
 
         Signal::query()->delete();
@@ -405,6 +405,7 @@ class SignalService
     private function sendTelegram($symbol, $signal)
     {
         $isCrypto = str_contains($symbol, 'USDT');
+        $currency = $isCrypto ? 'IDR' : 'IDR';
 
         $entry = $signal['entry'];
         $target = $signal['target'];
