@@ -8,6 +8,62 @@ use Illuminate\Support\Facades\Http;
 
 class SignalService
 {
+    public function populateAssets()
+    {
+        $cryptoSymbols = $this->fetchTopCryptoSymbols();
+        $stockSymbols = $this->fetchTopStockSymbols();
+
+        $allSymbols = array_merge($cryptoSymbols, $stockSymbols);
+
+        \Log::info("Fetched " . count($cryptoSymbols) . " crypto symbols and " . count($stockSymbols) . " stock symbols. Total: " . count($allSymbols));
+
+        $addedCount = 0;
+
+        foreach ($allSymbols as $symbolData)
+        {
+            $symbol = $symbolData['symbol'];
+            $market = $symbolData['market'];
+
+            if (Asset::where('symbol', $symbol)->where('market', $market)->exists())
+            {
+                continue;
+            }
+
+            if ($market === 'crypto')
+            {
+                $candles = $this->getCandlesCrypto($symbol);
+            }
+            elseif ($market === 'stock')
+            {
+                $candles = $this->getCandlesStock($symbol);
+            }
+            else
+            {
+                continue;
+            }
+
+            if (empty($candles))
+            {
+                \Log::warning("No candles for {$symbol} ({$market})");
+                continue;
+            }
+
+            $signal = $this->predict($candles, $market);
+            if ($signal)
+            {
+                Asset::create([
+                    'symbol' => $symbol,
+                    'market' => $market,
+                ]);
+
+                $addedCount++;
+                \Log::info("Added asset: {$symbol} ({$market}) - Gain: {$signal['gain']}%");
+            }
+        }
+
+        \Log::info("Total assets added: {$addedCount}");
+    }
+
     public function analyze()
     {
         $assets = Asset::all();
@@ -49,6 +105,9 @@ class SignalService
                 $this->sendTelegram($asset->symbol, $signal);
             }
         }
+
+        Signal::query()->delete();
+        Asset::query()->delete();
     }
 
     private function getCandlesCrypto($symbol)
@@ -96,8 +155,6 @@ class SignalService
 
     private function getCandlesStock($symbol)
     {
-        sleep(1);
-
         ini_set('memory_limit', '-1');
         ini_set("max_execution_time", "-1");
 
@@ -110,11 +167,19 @@ class SignalService
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HEADER         => false,
             CURLOPT_CUSTOMREQUEST  => 'GET',
+            CURLOPT_USERAGENT      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         ));
 
         $response = curl_exec($curl);
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         curl_close($curl);
         libxml_use_internal_errors(true);
+
+        if ($httpCode !== 200)
+        {
+            \Log::error('Yahoo Finance HTTP error', ['symbol' => $symbol, 'http_code' => $httpCode, 'response' => substr($response, 0, 500)]);
+            return [];
+        }
 
         $data = json_decode($response, true);
 
@@ -169,7 +234,7 @@ class SignalService
         $target     = $last['close'] + ($atr * $multiplier);
         $gain       = (($target - $last['close']) / $last['close']) * 100;
 
-        if (($market === 'crypto' && $gain >= 10) || ($market === 'stock' && $gain >= 3))
+        if (($market === 'crypto' && $gain >= 5) || ($market === 'stock' && $gain >= 1))
         {
             return [
                 'entry'  => $last['close'],
@@ -210,13 +275,154 @@ class SignalService
         return array_sum(array_slice($trs, -$period)) / $period;
     }
 
+    private function fetchTopCryptoSymbols()
+    {
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL            => 'https://api.binance.com/api/v3/ticker/24hr',
+            CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HEADER         => false,
+            CURLOPT_CUSTOMREQUEST  => 'GET',
+        ));
+
+        $response = curl_exec($curl);
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+
+        if ($httpCode !== 200)
+        {
+            \Log::error('Binance ticker API HTTP error', ['http_code' => $httpCode, 'response' => $response]);
+            $fallbackCryptos = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT', 'XRPUSDT', 'SOLUSDT', 'DOTUSDT', 'DOGEUSDT', 'AVAXUSDT', 'LTCUSDT'];
+            return collect($fallbackCryptos)->map(function ($symbol)
+            {
+                return [
+                    'symbol' => $symbol,
+                    'market' => 'crypto',
+                ];
+            })->toArray();
+        }
+
+        $data = json_decode($response, true);
+
+        if (! is_array($data))
+        {
+            \Log::error('Binance ticker API error', ['data' => $data]);
+            $fallbackCryptos = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT', 'XRPUSDT', 'SOLUSDT', 'DOTUSDT', 'DOGEUSDT', 'AVAXUSDT', 'LTCUSDT'];
+            return collect($fallbackCryptos)->map(function ($symbol)
+            {
+                return [
+                    'symbol' => $symbol,
+                    'market' => 'crypto',
+                ];
+            })->toArray();
+        }
+
+        usort($data, function ($a, $b)
+        {
+            return (float) $b['quoteVolume'] <=> (float) $a['quoteVolume'];
+        });
+
+        return collect(array_slice($data, 0, 50))->map(function ($ticker)
+        {
+            if (!is_array($ticker) || !isset($ticker['symbol']))
+            {
+                return null;
+            }
+            return [
+                'symbol' => $ticker['symbol'],
+                'market' => 'crypto',
+            ];
+        })->filter()->toArray();
+    }
+
+    private function fetchTopStockSymbols()
+    {
+        $topIndonesianStocks = [
+            'BBCA.JK',
+            'BBRI.JK',
+            'BMRI.JK',
+            'BBNI.JK',
+            'ASII.JK',
+            'UNVR.JK',
+            'TLKM.JK',
+            'ANTM.JK',
+            'ICBP.JK',
+            'SMGR.JK',
+            'CPIN.JK',
+            'INDF.JK',
+            'KLBF.JK',
+            'HMSP.JK',
+            'BRPT.JK',
+            'ADRO.JK',
+            'PTBA.JK',
+            'ITMG.JK',
+            'MAPI.JK',
+            'JSMR.JK',
+            'GGRM.JK',
+            'INCO.JK',
+            'MDKA.JK',
+            'PGAS.JK',
+            'TKIM.JK',
+            'TOWR.JK',
+            'WSKT.JK',
+            'WIKA.JK',
+            'WTON.JK',
+            'EXCL.JK',
+            'ISAT.JK',
+            'FREN.JK',
+            'MIKA.JK',
+            'SCMA.JK',
+            'SRIL.JK',
+            'TINS.JK',
+            'UNTR.JK',
+            'WIIM.JK',
+            'WOOD.JK',
+            'ZINC.JK',
+            'AKRA.JK',
+            'APLN.JK',
+            'BAPA.JK',
+            'BATA.JK',
+            'BTPN.JK',
+            'CASS.JK',
+            'DMAS.JK',
+            'ELSA.JK',
+            'EMTK.JK',
+            'ENRG.JK'
+        ];
+
+        return collect($topIndonesianStocks)->map(function ($symbol)
+        {
+            return [
+                'symbol' => $symbol,
+                'market' => 'stock',
+            ];
+        })->toArray();
+    }
+
     private function sendTelegram($symbol, $signal)
     {
+        $isCrypto = str_contains($symbol, 'USDT');
+
+        $entry = $signal['entry'];
+        $target = $signal['target'];
+        $sl = $signal['sl'];
+
+        if ($isCrypto)
+        {
+            $usdToIdr = $this->getUsdToIdrRate();
+            $entry = round($entry * $usdToIdr, 0);
+            $target = round($target * $usdToIdr, 0);
+            $sl = round($sl * $usdToIdr, 0);
+        }
+
         $msg  = "<code>";
         $msg .= "🚀 Signal " . $symbol . " 🚀\n";
-        $msg .= "Entry    : " . $signal['entry'] . "\n";
-        $msg .= "Target   : " . $signal['target'] . " (+" . $signal['gain'] . "%) ✅\n";
-        $msg .= "Stop Loss: " . $signal['sl'] . "\n";
+        $msg .= "Entry    : " . number_format($entry, 0, ',', '.') . " " . $currency . "\n";
+        $msg .= "Target   : " . number_format($target, 0, ',', '.') . " " . $currency . " (+" . $signal['gain'] . "%) ✅\n";
+        $msg .= "Stop Loss: " . number_format($sl, 0, ',', '.') . " " . $currency . "\n";
         $msg .= "Reason   : " . $signal['reason'] . "\n";
         $msg .= "</code>";
 
@@ -226,5 +432,22 @@ class SignalService
             'text'       => $msg,
             'parse_mode' => 'HTML'
         ]);
+    }
+
+    private function getUsdToIdrRate()
+    {
+        try
+        {
+            $response = Http::get('https://api.exchangerate-api.com/v4/latest/USD');
+            if ($response->successful())
+            {
+                $data = $response->json();
+                return $data['rates']['IDR'] ?? 15000;
+            }
+        }
+        catch (\Exception $e)
+        {
+            \Log::error('Exchange rate API error', ['error' => $e->getMessage()]);
+        }
     }
 }

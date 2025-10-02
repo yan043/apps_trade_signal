@@ -13,7 +13,14 @@ class RunSignalAnalysis extends Command
 
     public function handle(SignalService $service)
     {
+        $this->info('Populating assets...');
+
+        $service->populateAssets();
+
+        $this->info('Assets populated. Running signal analysis...');
+
         $service->analyze();
+
         $this->info('Signal analysis done!');
     }
 }
