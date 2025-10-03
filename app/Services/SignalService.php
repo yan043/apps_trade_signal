@@ -68,6 +68,9 @@ class SignalService
     {
         $assets = Asset::all();
 
+        $cryptoSignals = [];
+        $stockSignals = [];
+
         foreach ($assets as $asset)
         {
             if ($asset->market === 'crypto')
@@ -93,22 +96,87 @@ class SignalService
             $signal = $this->predict($candles, $asset->market);
             if ($signal)
             {
-                Signal::create([
-                    'asset_id'      => $asset->id,
-                    'entry_price'   => $signal['entry'],
-                    'target_price'  => $signal['target'],
-                    'stop_loss'     => $signal['sl'],
-                    'expected_gain' => $signal['gain'],
-                    'reason'        => $signal['reason'],
-                ]);
+                $expiredAt = $this->calculateExpiredAt($asset->market);
+                $signal['expired_at'] = $expiredAt;
 
-                \Log::info("Signal created for {$asset->symbol}: Entry {$signal['entry']}, Target {$signal['target']}, SL {$signal['sl']}, Gain {$signal['gain']}%");
-                $this->sendTelegram($asset->symbol, $signal);
+                if ($asset->market === 'crypto')
+                {
+                    $cryptoSignals[] = ['asset' => $asset, 'signal' => $signal];
+                }
+                else
+                {
+                    $stockSignals[] = ['asset' => $asset, 'signal' => $signal];
+                }
             }
         }
 
-        Signal::query()->delete();
-        Asset::query()->delete();
+        usort($cryptoSignals, function ($a, $b)
+        {
+            return $b['signal']['gain'] <=> $a['signal']['gain'];
+        });
+        $cryptoSignals = array_slice($cryptoSignals, 0, 15);
+
+        usort($stockSignals, function ($a, $b)
+        {
+            return $b['signal']['gain'] <=> $a['signal']['gain'];
+        });
+        $stockSignals = array_slice($stockSignals, 0, 15);
+
+        foreach ($cryptoSignals as $item)
+        {
+            $asset = $item['asset'];
+            $signal = $item['signal'];
+
+            Signal::create([
+                'asset_id'      => $asset->id,
+                'entry_price'   => $signal['entry'],
+                'target_price'  => $signal['target'],
+                'stop_loss'     => $signal['sl'],
+                'expected_gain' => $signal['gain'],
+                'expired_at'    => $signal['expired_at'],
+            ]);
+
+            \Log::info("Signal created for {$asset->symbol}: Entry {$signal['entry']}, Target {$signal['target']}, SL {$signal['sl']}, Gain {$signal['gain']}%");
+            $this->sendTelegram($asset->symbol, $signal);
+        }
+
+        foreach ($stockSignals as $item)
+        {
+            $asset = $item['asset'];
+            $signal = $item['signal'];
+
+            Signal::create([
+                'asset_id'      => $asset->id,
+                'entry_price'   => $signal['entry'],
+                'target_price'  => $signal['target'],
+                'stop_loss'     => $signal['sl'],
+                'expected_gain' => $signal['gain'],
+                'expired_at'    => $signal['expired_at'],
+            ]);
+
+            \Log::info("Signal created for {$asset->symbol}: Entry {$signal['entry']}, Target {$signal['target']}, SL {$signal['sl']}, Gain {$signal['gain']}%");
+            $this->sendTelegram($asset->symbol, $signal);
+        }
+    }
+
+    private function calculateExpiredAt($market)
+    {
+        $now = new \DateTime();
+
+        if ($market === 'crypto')
+        {
+            $now->modify('+1 day');
+        }
+        elseif ($market === 'stock')
+        {
+            $now->modify('+7 days');
+        }
+        else
+        {
+            $now->modify('+1 day');
+        }
+
+        return $now->format('Y-m-d H:i:s');
     }
 
     private function getCandlesCrypto($symbol)
@@ -247,7 +315,6 @@ class SignalService
                 'target' => round($target, 2),
                 'sl'     => round($last['close'] - ($atr * 1.2), 2),
                 'gain'   => round($gain, 2),
-                'reason' => 'Breakout + Volume + ATR',
             ];
         }
 
@@ -1301,27 +1368,12 @@ class SignalService
 
     private function sendTelegram($symbol, $signal)
     {
-        $isCrypto = str_contains($symbol, 'USDT');
-        $currency = $isCrypto ? 'IDR' : 'IDR';
-
-        $entry = $signal['entry'];
-        $target = $signal['target'];
-        $sl = $signal['sl'];
-
-        if ($isCrypto)
-        {
-            $usdToIdr = $this->getUsdToIdrRate();
-            $entry = round($entry * $usdToIdr, 0);
-            $target = round($target * $usdToIdr, 0);
-            $sl = round($sl * $usdToIdr, 0);
-        }
-
         $msg  = "<code>";
-        $msg .= "🚀 Signal " . $symbol . " 🚀\n";
-        $msg .= "Entry    : " . number_format($entry, 0, ',', '.') . " " . $currency . "\n";
-        $msg .= "Target   : " . number_format($target, 0, ',', '.') . " " . $currency . " (+" . $signal['gain'] . "%) ✅\n";
-        $msg .= "Stop Loss: " . number_format($sl, 0, ',', '.') . " " . $currency . "\n";
-        $msg .= "Reason   : " . $signal['reason'] . "\n";
+        $msg .= "💸 Signal #" . $symbol . " 💸\n";
+        $msg .= "Entry    : " . number_format($signal['entry'], 0, ',', '.') . "\n";
+        $msg .= "Target   : " . number_format($signal['target'], 0, ',', '.') . " (+" . $signal['gain'] . "%)\n";
+        $msg .= "Stop Loss: " . number_format($signal['sl'], 0, ',', '.') . "\n";
+        $msg .= "Expired  : " . ($signal['expired_at'] ?? 'N/A') . "\n";
         $msg .= "</code>";
 
         $url = 'https://api.telegram.org/bot' . env('TELEGRAM_BOT_TOKEN') . '/sendMessage';
@@ -1330,22 +1382,5 @@ class SignalService
             'text'       => $msg,
             'parse_mode' => 'HTML'
         ]);
-    }
-
-    private function getUsdToIdrRate()
-    {
-        try
-        {
-            $response = Http::get('https://api.exchangerate-api.com/v4/latest/USD');
-            if ($response->successful())
-            {
-                $data = $response->json();
-                return $data['rates']['IDR'] ?? 15000;
-            }
-        }
-        catch (\Exception $e)
-        {
-            \Log::error('Exchange rate API error', ['error' => $e->getMessage()]);
-        }
     }
 }

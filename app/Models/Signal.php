@@ -12,7 +12,7 @@ class Signal extends Model
         'target_price',
         'stop_loss',
         'expected_gain',
-        'reason',
+        'expired_at',
     ];
 
     public function asset()
