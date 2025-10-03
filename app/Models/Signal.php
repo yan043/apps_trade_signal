@@ -10,8 +10,12 @@ class Signal extends Model
         'asset_id',
         'entry_price',
         'target_price',
+        'target_price_2',
+        'target_price_3',
         'stop_loss',
         'expected_gain',
+        'expected_gain_2',
+        'expected_gain_3',
         'expired_at',
     ];
 

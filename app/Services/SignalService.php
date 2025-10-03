@@ -128,12 +128,16 @@ class SignalService
             $signal = $item['signal'];
 
             Signal::create([
-                'asset_id'      => $asset->id,
-                'entry_price'   => $signal['entry'],
-                'target_price'  => $signal['target'],
-                'stop_loss'     => $signal['sl'],
-                'expected_gain' => $signal['gain'],
-                'expired_at'    => $signal['expired_at'],
+                'asset_id'        => $asset->id,
+                'entry_price'     => $signal['entry'],
+                'target_price'    => $signal['target'],
+                'target_price_2'  => $signal['target_2'],
+                'target_price_3'  => $signal['target_3'],
+                'stop_loss'       => $signal['sl'],
+                'expected_gain'   => $signal['gain'],
+                'expected_gain_2' => $signal['gain_2'],
+                'expected_gain_3' => $signal['gain_3'],
+                'expired_at'      => $signal['expired_at'],
             ]);
 
             \Log::info("Signal created for {$asset->symbol}: Entry {$signal['entry']}, Target {$signal['target']}, SL {$signal['sl']}, Gain {$signal['gain']}%");
@@ -146,12 +150,16 @@ class SignalService
             $signal = $item['signal'];
 
             Signal::create([
-                'asset_id'      => $asset->id,
-                'entry_price'   => $signal['entry'],
-                'target_price'  => $signal['target'],
-                'stop_loss'     => $signal['sl'],
-                'expected_gain' => $signal['gain'],
-                'expired_at'    => $signal['expired_at'],
+                'asset_id'        => $asset->id,
+                'entry_price'     => $signal['entry'],
+                'target_price'    => $signal['target'],
+                'target_price_2'  => $signal['target_2'],
+                'target_price_3'  => $signal['target_3'],
+                'stop_loss'       => $signal['sl'],
+                'expected_gain'   => $signal['gain'],
+                'expected_gain_2' => $signal['gain_2'],
+                'expected_gain_3' => $signal['gain_3'],
+                'expired_at'      => $signal['expired_at'],
             ]);
 
             \Log::info("Signal created for {$asset->symbol}: Entry {$signal['entry']}, Target {$signal['target']}, SL {$signal['sl']}, Gain {$signal['gain']}%");
@@ -305,16 +313,26 @@ class SignalService
         }
 
         $multiplier = $market === 'crypto' ? 2.5 : 1.2;
-        $target     = $last['close'] + ($atr * $multiplier);
-        $gain       = (($target - $last['close']) / $last['close']) * 100;
 
-        if (($market === 'crypto' && $gain >= 15) || ($market === 'stock' && $gain >= 10))
+        $target1 = $last['close'] + ($atr * $multiplier);
+        $target2 = $last['close'] + ($atr * $multiplier * 1.5);
+        $target3 = $last['close'] + ($atr * $multiplier * 2);
+
+        $gain1 = (($target1 - $last['close']) / $last['close']) * 100;
+        $gain2 = (($target2 - $last['close']) / $last['close']) * 100;
+        $gain3 = (($target3 - $last['close']) / $last['close']) * 100;
+
+        if (($market === 'crypto' && $gain1 >= 15) || ($market === 'stock' && $gain1 >= 10))
         {
             return [
-                'entry'  => $last['close'],
-                'target' => round($target, 2),
-                'sl'     => round($last['close'] - ($atr * 1.2), 2),
-                'gain'   => round($gain, 2),
+                'entry'        => $last['close'],
+                'target'       => round($target1, 2),
+                'target_2'     => round($target2, 2),
+                'target_3'     => round($target3, 2),
+                'sl'           => round($last['close'] - ($atr * 1.2), 2),
+                'gain'         => round($gain1, 2),
+                'gain_2'       => round($gain2, 2),
+                'gain_3'       => round($gain3, 2),
             ];
         }
 
@@ -1370,10 +1388,12 @@ class SignalService
     {
         $msg  = "<code>";
         $msg .= "💸 Signal #" . $symbol . " 💸\n";
-        $msg .= "Entry    : " . number_format($signal['entry'], 0, ',', '.') . "\n";
-        $msg .= "Target   : " . number_format($signal['target'], 0, ',', '.') . " (+" . $signal['gain'] . "%)\n";
-        $msg .= "Stop Loss: " . number_format($signal['sl'], 0, ',', '.') . "\n";
-        $msg .= "Expired  : " . ($signal['expired_at'] ?? 'N/A') . "\n";
+        $msg .= "Entry     : " . number_format($signal['entry'], 0, ',', '.') . "\n";
+        $msg .= "Target 1  : " . number_format($signal['target'], 0, ',', '.') . " (+" . $signal['gain'] . "%)\n";
+        $msg .= "Target 2  : " . number_format($signal['target_2'], 0, ',', '.') . " (+" . $signal['gain_2'] . "%)\n";
+        $msg .= "Target 3  : " . number_format($signal['target_3'], 0, ',', '.') . " (+" . $signal['gain_3'] . "%)\n";
+        $msg .= "Stop Loss : " . number_format($signal['sl'], 0, ',', '.') . "\n";
+        $msg .= "Expired   : " . ($signal['expired_at'] ?? 'N/A') . "\n";
         $msg .= "</code>";
 
         $url = 'https://api.telegram.org/bot' . env('TELEGRAM_BOT_TOKEN') . '/sendMessage';
