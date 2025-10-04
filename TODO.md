@@ -1,0 +1,4 @@
+- [x] Update ScalpingSignalService.php to calculate and add tp_percentage and sl_percentage to the signal array
+- [x] Modify dashboard.blade.php to add TP (%) and SL (%) columns in the table header
+- [x] Update the @foreach loop in dashboard.blade.php to display the percentage values
+- [x] Update the JavaScript updateTables function to include TP (%) and SL (%) in the dynamic HTML

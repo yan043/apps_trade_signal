@@ -136,6 +136,9 @@ class ScalpingSignalService
             $signal['sl']     = $lastClose * 1.003;
         }
 
+        $signal['tp_percentage'] = $signal['tp'] ? (($signal['tp'] - $lastClose) / $lastClose) * 100 : null;
+        $signal['sl_percentage'] = $signal['sl'] ? (($signal['sl'] - $lastClose) / $lastClose) * 100 : null;
+
         return $signal;
     }
 }
