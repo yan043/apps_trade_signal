@@ -67,7 +67,7 @@ class DashboardController extends Controller
             'ENJUSDT'
         ];
 
-        $scalpingSignals = []; // Scalping will be loaded via AJAX
+        $scalpingSignals = [];
 
         return view('dashboard', compact('cryptoSignals', 'stockSignals', 'scalpingSignals'));
     }
