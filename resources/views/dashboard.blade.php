@@ -9,25 +9,116 @@
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 	<style>
 		body {
-			background-color: #f8f9fa;
+			background: linear-gradient(135deg, #0d6efd, #0dcaf0);
+			min-height: 100vh;
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+		}
+
+		h1 {
+			font-weight: 700;
+			color: #fff;
+			text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
 		}
 
 		.last-updated {
 			font-size: 0.9em;
-			color: #6c757d;
+			color: #f8f9fa;
+			background: rgba(0, 0, 0, 0.2);
+			display: inline-block;
+			padding: 5px 15px;
+			border-radius: 30px;
+		}
+
+		.card {
+			border: none;
+			border-radius: 15px;
+			box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+			margin-bottom: 25px;
+			overflow: hidden;
+		}
+
+		.card-header {
+			font-weight: bold;
+			letter-spacing: 0.5px;
+		}
+
+		.table {
+			border-radius: 10px;
+			overflow: hidden;
+		}
+
+		.table thead th {
+			text-transform: uppercase;
+			font-size: 0.85rem;
+		}
+
+		.table-hover tbody tr:hover {
+			background-color: rgba(13, 202, 240, 0.1);
+			cursor: pointer;
+		}
+
+		.badge {
+			font-size: 0.85rem;
+			padding: 6px 12px;
+			border-radius: 12px;
+		}
+
+		/* Animasi Loading */
+		.loading-text {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.loading-text span {
+			width: 8px;
+			height: 8px;
+			margin: 0 2px;
+			background: #0d6efd;
+			border-radius: 50%;
+			display: inline-block;
+			animation: bounce 1.4s infinite;
+		}
+
+		.loading-text span:nth-child(2) {
+			animation-delay: 0.2s;
+		}
+
+		.loading-text span:nth-child(3) {
+			animation-delay: 0.4s;
+		}
+
+		@keyframes bounce {
+
+			0%,
+			80%,
+			100% {
+				transform: scale(0);
+			}
+
+			40% {
+				transform: scale(1);
+			}
 		}
 	</style>
 </head>
 
 <body>
 	<div class="container-fluid mt-4">
-		<h1 class="text-center mb-4">Trading Bot Dashboard</h1>
-		<div class="last-updated text-center" id="last-updated">Last updated: <span
-				id="update-time">{{ now()->format('H:i:s') }}</span></div>
+		<h1 class="text-center mb-3">🚀 Trading Bot Dashboard</h1>
+		<div class="text-center mb-4">
+			<div class="last-updated" id="last-updated">
+				<span id="clock"></span>
+			</div>
+			@php
+				$ua = strtolower($_SERVER['HTTP_USER_AGENT']);
+				$isMob = is_numeric(strpos($ua, 'mobile'));
+			@endphp
+		</div>
 
 		<div class="card">
 			<div class="card-header bg-primary text-white">
-				<h5 class="mb-0">Scalping Crypto Signals</h5>
+				<h5 class="mb-0">📊 Scalping Crypto Signals</h5>
 			</div>
 			<div class="card-body">
 				<div class="table-responsive">
@@ -46,29 +137,12 @@
 								<th>SL (%)</th>
 							</tr>
 						</thead>
-						<tbody>
-							@foreach ($scalpingSignals as $signal)
-								<tr>
-									<td>{{ $signal['symbol'] }}</td>
-									<td>{{ number_format($signal['price'], 2) }}</td>
-									<td>{{ $signal['ema9'] ? number_format($signal['ema9'], 2) : 'N/A' }}</td>
-									<td>{{ $signal['ema21'] ? number_format($signal['ema21'], 2) : 'N/A' }}</td>
-									<td>{{ $signal['rsi'] ? number_format($signal['rsi'], 2) : 'N/A' }}</td>
-									<td>
-										@if ($signal['action'] == 'BUY')
-											<span class="badge bg-success">BUY</span>
-										@elseif($signal['action'] == 'SELL')
-											<span class="badge bg-danger">SELL</span>
-										@else
-											<span class="badge bg-secondary">HOLD</span>
-										@endif
-									</td>
-									<td>{{ $signal['tp'] ? number_format($signal['tp'], 2) : '-' }}</td>
-									<td>{{ $signal['sl'] ? number_format($signal['sl'], 2) : '-' }}</td>
-									<td>{{ $signal['tp_percentage'] ? number_format($signal['tp_percentage'], 2) : '-' }}</td>
-									<td>{{ $signal['sl_percentage'] ? number_format($signal['sl_percentage'], 2) : '-' }}</td>
-								</tr>
-							@endforeach
+						<tbody id="scalping-loading">
+							<tr>
+								<td colspan="10" class="text-center loading-text">
+									<span></span><span></span><span></span>
+								</td>
+							</tr>
 						</tbody>
 					</table>
 				</div>
@@ -77,7 +151,7 @@
 
 		<div class="card">
 			<div class="card-header bg-success text-white">
-				<h5 class="mb-0">Crypto Signals</h5>
+				<h5 class="mb-0">💹 Crypto Signals</h5>
 			</div>
 			<div class="card-body">
 				<div class="table-responsive">
@@ -97,20 +171,11 @@
 							</tr>
 						</thead>
 						<tbody>
-							@foreach ($cryptoSignals as $signal)
-								<tr>
-									<td>{{ $signal->asset->symbol }}</td>
-									<td>{{ number_format($signal->entry_price, 2) }}</td>
-									<td>{{ number_format($signal->target_price, 2) }}</td>
-									<td>{{ number_format($signal->target_price_2, 2) }}</td>
-									<td>{{ number_format($signal->target_price_3, 2) }}</td>
-									<td>{{ number_format($signal->stop_loss, 2) }}</td>
-									<td>{{ number_format($signal->expected_gain, 2) }}</td>
-									<td>{{ number_format($signal->expected_gain_2, 2) }}</td>
-									<td>{{ number_format($signal->expected_gain_3, 2) }}</td>
-									<td>{{ $signal->expired_at }}</td>
-								</tr>
-							@endforeach
+							<tr>
+								<td colspan="10" class="text-center loading-text">
+									<span></span><span></span><span></span>
+								</td>
+							</tr>
 						</tbody>
 					</table>
 				</div>
@@ -119,7 +184,7 @@
 
 		<div class="card">
 			<div class="card-header bg-info text-white">
-				<h5 class="mb-0">Stock Signals</h5>
+				<h5 class="mb-0">📈 Stock Signals</h5>
 			</div>
 			<div class="card-body">
 				<div class="table-responsive">
@@ -139,20 +204,11 @@
 							</tr>
 						</thead>
 						<tbody>
-							@foreach ($stockSignals as $index => $signal)
-								<tr>
-									<td>{{ $signal->asset->symbol }}</td>
-									<td>{{ number_format($signal->entry_price, 2) }}</td>
-									<td>{{ number_format($signal->target_price, 2) }}</td>
-									<td>{{ number_format($signal->target_price_2, 2) }}</td>
-									<td>{{ number_format($signal->target_price_3, 2) }}</td>
-									<td>{{ number_format($signal->stop_loss, 2) }}</td>
-									<td>{{ number_format($signal->expected_gain, 2) }}</td>
-									<td>{{ number_format($signal->expected_gain_2, 2) }}</td>
-									<td>{{ number_format($signal->expected_gain_3, 2) }}</td>
-									<td>{{ $signal->expired_at }}</td>
-								</tr>
-							@endforeach
+							<tr>
+								<td colspan="10" class="text-center loading-text">
+									<span></span><span></span><span></span>
+								</td>
+							</tr>
 						</tbody>
 					</table>
 				</div>
@@ -161,6 +217,44 @@
 	</div>
 
 	<script>
+		var isMob = {!! json_encode($isMob) !!};
+
+		if (isMob == false) {
+			function showTime() {
+				var months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus',
+					'September', 'Oktober', 'November', 'Desember'
+				];
+				var myDays = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+				var date = new Date();
+				var day = date.getDate();
+				var month = date.getMonth();
+				var thisDay = date.getDay();
+				thisDay = myDays[thisDay];
+				var yy = date.getFullYear();
+				var year = yy;
+
+				var today = new Date();
+				var curr_hour = today.getHours();
+				var curr_minute = today.getMinutes();
+				var curr_second = today.getSeconds();
+
+				curr_hour = checkTime(curr_hour);
+				curr_minute = checkTime(curr_minute);
+				curr_second = checkTime(curr_second);
+
+				document.getElementById('clock').innerHTML = thisDay + ', ' + day + ' ' + months[month] + ' ' +
+					year + ' | ' + curr_hour + ":" + curr_minute + ":" + curr_second;
+			}
+
+			function checkTime(i) {
+				if (i < 10) {
+					i = "0" + i;
+				}
+				return i;
+			}
+			setInterval(showTime, 500);
+		}
+
 		function updateTables(data) {
 			let scalpingHtml = '';
 			data.scalpingSignals.forEach(signal => {
@@ -232,6 +326,13 @@
 		}
 
 		function refreshData() {
+			document.querySelector('#scalping-table tbody').innerHTML =
+				'<tr><td colspan="10" class="text-center loading-text"><span></span><span></span><span></span></td></tr>';
+			document.querySelector('#crypto-table tbody').innerHTML =
+				'<tr><td colspan="10" class="text-center loading-text"><span></span><span></span><span></span></td></tr>';
+			document.querySelector('#stock-table tbody').innerHTML =
+				'<tr><td colspan="10" class="text-center loading-text"><span></span><span></span><span></span></td></tr>';
+
 			fetch('/dashboard/refresh')
 				.then(response => response.json())
 				.then(data => {
@@ -240,7 +341,11 @@
 				.catch(error => console.error('Error refreshing data:', error));
 		}
 
-		setInterval(refreshData, 30000);
+		document.addEventListener('DOMContentLoaded', function() {
+			refreshData();
+		});
+
+		setInterval(refreshData, 900000);
 	</script>
 </body>
 

@@ -4,12 +4,15 @@ namespace App\Services;
 
 use App\Models\Asset;
 use App\Models\Signal;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
 
 class SignalService
 {
     public function populateAssets()
     {
+        DB::table('signals')->delete();
+        DB::table('assets')->delete();
+
         $cryptoSymbols = $this->fetchTopCryptoSymbols();
         $stockSymbols = $this->fetchTopStockSymbols();
 
@@ -23,11 +26,6 @@ class SignalService
         {
             $symbol = $symbolData['symbol'];
             $market = $symbolData['market'];
-
-            if (Asset::where('symbol', $symbol)->where('market', $market)->exists())
-            {
-                continue;
-            }
 
             if ($market === 'crypto')
             {
@@ -141,7 +139,6 @@ class SignalService
             ]);
 
             \Log::info("Signal created for {$asset->symbol}: Entry {$signal['entry']}, Target {$signal['target']}, SL {$signal['sl']}, Gain {$signal['gain']}%");
-            $this->sendTelegram($asset->symbol, $signal);
         }
 
         foreach ($stockSignals as $item)
@@ -163,7 +160,6 @@ class SignalService
             ]);
 
             \Log::info("Signal created for {$asset->symbol}: Entry {$signal['entry']}, Target {$signal['target']}, SL {$signal['sl']}, Gain {$signal['gain']}%");
-            $this->sendTelegram($asset->symbol, $signal);
         }
     }
 
@@ -322,7 +318,7 @@ class SignalService
         $gain2 = (($target2 - $last['close']) / $last['close']) * 100;
         $gain3 = (($target3 - $last['close']) / $last['close']) * 100;
 
-        if (($market === 'crypto' && $gain1 >= 15) || ($market === 'stock' && $gain1 >= 10))
+        if (($market === 'crypto' && $gain1 >= 5) || ($market === 'stock' && $gain1 >= 10))
         {
             return [
                 'entry'        => $last['close'],
@@ -1382,25 +1378,5 @@ class SignalService
                 'market' => 'stock',
             ];
         })->toArray();
-    }
-
-    private function sendTelegram($symbol, $signal)
-    {
-        $msg  = "<code>";
-        $msg .= "💸 Signal #" . $symbol . " 💸\n";
-        $msg .= "Entry     : " . number_format($signal['entry'], 0, ',', '.') . "\n";
-        $msg .= "Target 1  : " . number_format($signal['target'], 0, ',', '.') . " (+" . $signal['gain'] . "%)\n";
-        $msg .= "Target 2  : " . number_format($signal['target_2'], 0, ',', '.') . " (+" . $signal['gain_2'] . "%)\n";
-        $msg .= "Target 3  : " . number_format($signal['target_3'], 0, ',', '.') . " (+" . $signal['gain_3'] . "%)\n";
-        $msg .= "Stop Loss : " . number_format($signal['sl'], 0, ',', '.') . "\n";
-        $msg .= "Expired   : " . ($signal['expired_at'] ?? 'N/A') . "\n";
-        $msg .= "</code>";
-
-        $url = 'https://api.telegram.org/bot' . env('TELEGRAM_BOT_TOKEN') . '/sendMessage';
-        Http::post($url, [
-            'chat_id'    => env('TELEGRAM_CHAT_ID'),
-            'text'       => $msg,
-            'parse_mode' => 'HTML'
-        ]);
     }
 }

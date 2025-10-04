@@ -125,15 +125,15 @@ class ScalpingSignalService
         if ($ema9 > $ema21 && $rsi !== null && $rsi > 40 && $rsi < 65)
         {
             $signal['action'] = 'BUY';
-            $signal['tp']     = $lastClose * 1.005;
-            $signal['sl']     = $lastClose * 0.997;
+            $signal['tp']     = $lastClose * 1.03;
+            $signal['sl']     = $lastClose * 0.99;
         }
 
         if ($ema9 < $ema21 && $rsi !== null && $rsi > 35 && $rsi < 60)
         {
             $signal['action'] = 'SELL';
-            $signal['tp']     = $lastClose * 0.995;
-            $signal['sl']     = $lastClose * 1.003;
+            $signal['tp']     = $lastClose * 0.97;
+            $signal['sl']     = $lastClose * 1.01;
         }
 
         $signal['tp_percentage'] = $signal['tp'] ? (($signal['tp'] - $lastClose) / $lastClose) * 100 : null;

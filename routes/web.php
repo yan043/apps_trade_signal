@@ -9,4 +9,4 @@ Route::get('/', function ()
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-Route::get('/dashboard/refresh', [DashboardController::class, 'refreshData'])->name('dashboard.refresh');
+Route::get('/dashboard/refresh', [DashboardController::class, 'refresh'])->name('dashboard.refresh');
