@@ -4,7 +4,7 @@
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>Trading Bot Dashboard</title>
+	<title>Signal Auto Trading</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 	<style>
@@ -52,6 +52,21 @@
 			font-size: 0.85rem;
 		}
 
+		.table th,
+		.table td {
+			text-align: center !important;
+			vertical-align: middle !important;
+			padding-top: 2px !important;
+			padding-bottom: 2px !important;
+			padding-left: 4px !important;
+			padding-right: 4px !important;
+			font-size: 12px !important;
+		}
+
+		.table tr {
+			height: 22px
+		}
+
 		.table-hover tbody tr:hover {
 			background-color: rgba(13, 202, 240, 0.1);
 			cursor: pointer;
@@ -63,7 +78,6 @@
 			border-radius: 12px;
 		}
 
-		/* Animasi Loading */
 		.loading-text {
 			display: flex;
 			align-items: center;
@@ -105,7 +119,7 @@
 
 <body>
 	<div class="container-fluid mt-4">
-		<h1 class="text-center mb-3">🚀 Trading Bot Dashboard</h1>
+		<h1 class="text-center mb-3">🚀 Signal Auto Trading</h1>
 		<div class="text-center mb-4">
 			<div class="last-updated" id="last-updated">
 				<span id="clock"></span>
@@ -133,13 +147,11 @@
 								<th>Action</th>
 								<th>TP</th>
 								<th>SL</th>
-								<th>TP (%)</th>
-								<th>SL (%)</th>
 							</tr>
 						</thead>
 						<tbody id="scalping-table-body">
 							<tr>
-								<td colspan="10" class="text-center loading-text">
+								<td colspan="8" class="text-center loading-text">
 									<span></span><span></span><span></span>
 								</td>
 							</tr>
@@ -160,29 +172,31 @@
 							<tr>
 								<th>Symbol</th>
 								<th>Entry Price</th>
-								<th>Target 1</th>
-								<th>Target 2</th>
-								<th>Target 3</th>
+								<th>Target</th>
 								<th>Stop Loss</th>
-								<th>Gain 1 (%)</th>
-								<th>Gain 2 (%)</th>
-								<th>Gain 3 (%)</th>
-								<th>Expired At</th>
+								<th>Gain</th>
 							</tr>
 						</thead>
 						<tbody id="crypto-table-body">
 							@foreach ($cryptoSignals as $signal)
 								<tr>
 									<td>{{ $signal->asset->symbol }}</td>
-									<td>{{ number_format($signal->entry_price, 2) }}</td>
-									<td>{{ number_format($signal->target_price, 2) }}</td>
-									<td>{{ number_format($signal->target_price_2, 2) }}</td>
-									<td>{{ number_format($signal->target_price_3, 2) }}</td>
-									<td>{{ number_format($signal->stop_loss, 2) }}</td>
-									<td>{{ number_format($signal->expected_gain, 2) }}</td>
-									<td>{{ number_format($signal->expected_gain_2, 2) }}</td>
-									<td>{{ number_format($signal->expected_gain_3, 2) }}</td>
-									<td>{{ $signal->expired_at }}</td>
+									<td>{{ number_format($signal->entry_price, 2, ',', '.') }}</td>
+									<td>
+										{{ number_format($signal->target_price, 2, ',', '.') }}
+										({{ number_format($signal->expected_gain, 2, ',', '.') }}%)
+										<br>
+										{{ number_format($signal->target_price_2, 2, ',', '.') }}
+										({{ number_format($signal->expected_gain_2, 2, ',', '.') }}%)<br>
+										{{ number_format($signal->target_price_3, 2, ',', '.') }}
+										({{ number_format($signal->expected_gain_3, 2, ',', '.') }}%)
+									</td>
+									<td>{{ number_format($signal->stop_loss, 2, ',', '.') }}</td>
+									<td>
+										{{ number_format($signal->expected_gain, 2, ',', '.') }}%<br>
+										{{ number_format($signal->expected_gain_2, 2, ',', '.') }}%<br>
+										{{ number_format($signal->expected_gain_3, 2, ',', '.') }}%
+									</td>
 								</tr>
 							@endforeach
 						</tbody>
@@ -202,29 +216,31 @@
 							<tr>
 								<th>Symbol</th>
 								<th>Entry Price</th>
-								<th>Target 1</th>
-								<th>Target 2</th>
-								<th>Target 3</th>
+								<th>Target</th>
 								<th>Stop Loss</th>
-								<th>Gain 1 (%)</th>
-								<th>Gain 2 (%)</th>
-								<th>Gain 3 (%)</th>
-								<th>Expired At</th>
+								<th>Gain</th>
 							</tr>
 						</thead>
 						<tbody id="stock-table-body">
 							@foreach ($stockSignals as $signal)
 								<tr>
 									<td>{{ $signal->asset->symbol }}</td>
-									<td>{{ number_format($signal->entry_price, 2) }}</td>
-									<td>{{ number_format($signal->target_price, 2) }}</td>
-									<td>{{ number_format($signal->target_price_2, 2) }}</td>
-									<td>{{ number_format($signal->target_price_3, 2) }}</td>
-									<td>{{ number_format($signal->stop_loss, 2) }}</td>
-									<td>{{ number_format($signal->expected_gain, 2) }}</td>
-									<td>{{ number_format($signal->expected_gain_2, 2) }}</td>
-									<td>{{ number_format($signal->expected_gain_3, 2) }}</td>
-									<td>{{ $signal->expired_at }}</td>
+									<td>{{ number_format($signal->entry_price, 2, ',', '.') }}</td>
+									<td>
+										{{ number_format($signal->target_price, 2, ',', '.') }}
+										({{ number_format($signal->expected_gain, 2, ',', '.') }}%)
+										<br>
+										{{ number_format($signal->target_price_2, 2, ',', '.') }}
+										({{ number_format($signal->expected_gain_2, 2, ',', '.') }}%)<br>
+										{{ number_format($signal->target_price_3, 2, ',', '.') }}
+										({{ number_format($signal->expected_gain_3, 2, ',', '.') }}%)
+									</td>
+									<td>{{ number_format($signal->stop_loss, 2, ',', '.') }}</td>
+									<td>
+										{{ number_format($signal->expected_gain, 2, ',', '.') }}%<br>
+										{{ number_format($signal->expected_gain_2, 2, ',', '.') }}%<br>
+										{{ number_format($signal->expected_gain_3, 2, ',', '.') }}%
+									</td>
 								</tr>
 							@endforeach
 						</tbody>
@@ -284,18 +300,28 @@
 				} else {
 					actionBadge = '<span class="badge bg-secondary">HOLD</span>';
 				}
+
+				const formatNum = (num) => num.toLocaleString('id-ID', {
+					minimumFractionDigits: 2,
+					maximumFractionDigits: 2
+				});
+
 				scalpingHtml += `
                     <tr>
                         <td>${signal.symbol}</td>
-                        <td>${parseFloat(signal.price).toFixed(2)}</td>
-                        <td>${signal.ema9 ? parseFloat(signal.ema9).toFixed(2) : 'N/A'}</td>
-                        <td>${signal.ema21 ? parseFloat(signal.ema21).toFixed(2) : 'N/A'}</td>
-                        <td>${signal.rsi ? parseFloat(signal.rsi).toFixed(2) : 'N/A'}</td>
+                        <td>${formatNum(signal.price)}</td>
+                        <td>${signal.ema9 ? formatNum(signal.ema9) : 'N/A'}</td>
+                        <td>${signal.ema21 ? formatNum(signal.ema21) : 'N/A'}</td>
+                        <td>${signal.rsi ? formatNum(signal.rsi) : 'N/A'}</td>
                         <td>${actionBadge}</td>
-                        <td>${signal.tp ? parseFloat(signal.tp).toFixed(2) : '-'}</td>
-                        <td>${signal.sl ? parseFloat(signal.sl).toFixed(2) : '-'}</td>
-                        <td>${signal.tp_percentage ? parseFloat(signal.tp_percentage).toFixed(2) : '-'}</td>
-                        <td>${signal.sl_percentage ? parseFloat(signal.sl_percentage).toFixed(2) : '-'}</td>
+                        <td>
+                            ${signal.tp1 ? formatNum(signal.tp1) + ' (' + formatNum(signal.tp1_percentage) + '%)' : '-'}<br>
+                            ${signal.tp2 ? formatNum(signal.tp2) + ' (' + formatNum(signal.tp2_percentage) + '%)' : '-'}<br>
+                            ${signal.tp3 ? formatNum(signal.tp3) + ' (' + formatNum(signal.tp3_percentage) + '%)' : '-'}
+                        </td>
+                        <td>
+                            ${signal.sl ? formatNum(signal.sl) + ' (' + formatNum(signal.sl_percentage) + '%)' : '-'}
+                        </td>
                     </tr>
                 `;
 			});
@@ -303,20 +329,28 @@
 		}
 
 		function updateSignalsTables(data) {
+			const formatNum = (num) => parseFloat(num).toLocaleString('id-ID', {
+				minimumFractionDigits: 2,
+				maximumFractionDigits: 2
+			});
+
 			let cryptoHtml = '';
 			data.cryptoSignals.forEach(signal => {
 				cryptoHtml += `
                     <tr>
                         <td>${signal.asset.symbol}</td>
-                        <td>${parseFloat(signal.entry_price).toFixed(2)}</td>
-                        <td>${parseFloat(signal.target_price).toFixed(2)}</td>
-                        <td>${parseFloat(signal.target_price_2).toFixed(2)}</td>
-                        <td>${parseFloat(signal.target_price_3).toFixed(2)}</td>
-                        <td>${parseFloat(signal.stop_loss).toFixed(2)}</td>
-                        <td>${parseFloat(signal.expected_gain).toFixed(2)}</td>
-                        <td>${parseFloat(signal.expected_gain_2).toFixed(2)}</td>
-                        <td>${parseFloat(signal.expected_gain_3).toFixed(2)}</td>
-                        <td>${signal.expired_at}</td>
+                        <td>${formatNum(signal.entry_price)}</td>
+                        <td>
+                            ${formatNum(signal.target_price)} (${formatNum(signal.expected_gain)}%)<br>
+                            ${formatNum(signal.target_price_2)} (${formatNum(signal.expected_gain_2)}%)<br>
+                            ${formatNum(signal.target_price_3)} (${formatNum(signal.expected_gain_3)}%)
+                        </td>
+                        <td>${formatNum(signal.stop_loss)}</td>
+                        <td>
+                            ${formatNum(signal.expected_gain)}%<br>
+                            ${formatNum(signal.expected_gain_2)}%<br>
+                            ${formatNum(signal.expected_gain_3)}%
+                        </td>
                     </tr>
                 `;
 			});
@@ -327,15 +361,18 @@
 				stockHtml += `
                     <tr>
                         <td>${signal.asset.symbol}</td>
-                        <td>${parseFloat(signal.entry_price).toFixed(2)}</td>
-                        <td>${parseFloat(signal.target_price).toFixed(2)}</td>
-                        <td>${parseFloat(signal.target_price_2).toFixed(2)}</td>
-                        <td>${parseFloat(signal.target_price_3).toFixed(2)}</td>
-                        <td>${parseFloat(signal.stop_loss).toFixed(2)}</td>
-                        <td>${parseFloat(signal.expected_gain).toFixed(2)}</td>
-                        <td>${parseFloat(signal.expected_gain_2).toFixed(2)}</td>
-                        <td>${parseFloat(signal.expected_gain_3).toFixed(2)}</td>
-                        <td>${signal.expired_at}</td>
+                        <td>${formatNum(signal.entry_price)}</td>
+                        <td>
+                            ${formatNum(signal.target_price)} (${formatNum(signal.expected_gain)}%)<br>
+                            ${formatNum(signal.target_price_2)} (${formatNum(signal.expected_gain_2)}%)<br>
+                            ${formatNum(signal.target_price_3)} (${formatNum(signal.expected_gain_3)}%)
+                        </td>
+                        <td>${formatNum(signal.stop_loss)}</td>
+                        <td>
+                            ${formatNum(signal.expected_gain)}%<br>
+                            ${formatNum(signal.expected_gain_2)}%<br>
+                            ${formatNum(signal.expected_gain_3)}%
+                        </td>
                     </tr>
                 `;
 			});
@@ -344,7 +381,7 @@
 
 		function refreshScalping() {
 			document.querySelector('#scalping-table-body').innerHTML =
-				'<tr><td colspan="10" class="text-center loading-text"><span></span><span></span><span></span></td></tr>';
+				'<tr><td colspan="8" class="text-center loading-text"><span></span><span></span><span></span></td></tr>';
 
 			fetch('/dashboard/refresh-scalping')
 				.then(response => response.json())
@@ -356,9 +393,9 @@
 
 		function refreshSignals() {
 			document.querySelector('#crypto-table-body').innerHTML =
-				'<tr><td colspan="10" class="text-center loading-text"><span></span><span></span><span></span></td></tr>';
+				'<tr><td colspan="6" class="text-center loading-text"><span></span><span></span><span></span></td></tr>';
 			document.querySelector('#stock-table-body').innerHTML =
-				'<tr><td colspan="10" class="text-center loading-text"><span></span><span></span><span></span></td></tr>';
+				'<tr><td colspan="6" class="text-center loading-text"><span></span><span></span><span></span></td></tr>';
 
 			fetch('/dashboard/refresh-signals')
 				.then(response => response.json())
