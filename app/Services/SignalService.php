@@ -362,7 +362,7 @@ class SignalService
         return array_sum(array_slice($trs, -$period)) / $period;
     }
 
-    private function fetchTopCryptoSymbols()
+    public function fetchTopCryptoSymbols()
     {
         $curl = curl_init();
 

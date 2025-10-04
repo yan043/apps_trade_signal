@@ -137,7 +137,7 @@
 								<th>SL (%)</th>
 							</tr>
 						</thead>
-						<tbody id="scalping-loading">
+						<tbody id="scalping-table-body">
 							<tr>
 								<td colspan="10" class="text-center loading-text">
 									<span></span><span></span><span></span>
@@ -170,12 +170,21 @@
 								<th>Expired At</th>
 							</tr>
 						</thead>
-						<tbody>
-							<tr>
-								<td colspan="10" class="text-center loading-text">
-									<span></span><span></span><span></span>
-								</td>
-							</tr>
+						<tbody id="crypto-table-body">
+							@foreach ($cryptoSignals as $signal)
+								<tr>
+									<td>{{ $signal->asset->symbol }}</td>
+									<td>{{ number_format($signal->entry_price, 2) }}</td>
+									<td>{{ number_format($signal->target_price, 2) }}</td>
+									<td>{{ number_format($signal->target_price_2, 2) }}</td>
+									<td>{{ number_format($signal->target_price_3, 2) }}</td>
+									<td>{{ number_format($signal->stop_loss, 2) }}</td>
+									<td>{{ number_format($signal->expected_gain, 2) }}</td>
+									<td>{{ number_format($signal->expected_gain_2, 2) }}</td>
+									<td>{{ number_format($signal->expected_gain_3, 2) }}</td>
+									<td>{{ $signal->expired_at }}</td>
+								</tr>
+							@endforeach
 						</tbody>
 					</table>
 				</div>
@@ -203,12 +212,21 @@
 								<th>Expired At</th>
 							</tr>
 						</thead>
-						<tbody>
-							<tr>
-								<td colspan="10" class="text-center loading-text">
-									<span></span><span></span><span></span>
-								</td>
-							</tr>
+						<tbody id="stock-table-body">
+							@foreach ($stockSignals as $signal)
+								<tr>
+									<td>{{ $signal->asset->symbol }}</td>
+									<td>{{ number_format($signal->entry_price, 2) }}</td>
+									<td>{{ number_format($signal->target_price, 2) }}</td>
+									<td>{{ number_format($signal->target_price_2, 2) }}</td>
+									<td>{{ number_format($signal->target_price_3, 2) }}</td>
+									<td>{{ number_format($signal->stop_loss, 2) }}</td>
+									<td>{{ number_format($signal->expected_gain, 2) }}</td>
+									<td>{{ number_format($signal->expected_gain_2, 2) }}</td>
+									<td>{{ number_format($signal->expected_gain_3, 2) }}</td>
+									<td>{{ $signal->expired_at }}</td>
+								</tr>
+							@endforeach
 						</tbody>
 					</table>
 				</div>
@@ -255,7 +273,7 @@
 			setInterval(showTime, 500);
 		}
 
-		function updateTables(data) {
+		function updateScalpingTable(data) {
 			let scalpingHtml = '';
 			data.scalpingSignals.forEach(signal => {
 				let actionBadge = '';
@@ -281,8 +299,10 @@
                     </tr>
                 `;
 			});
-			document.querySelector('#scalping-table tbody').innerHTML = scalpingHtml;
+			document.querySelector('#scalping-table-body').innerHTML = scalpingHtml;
+		}
 
+		function updateSignalsTables(data) {
 			let cryptoHtml = '';
 			data.cryptoSignals.forEach(signal => {
 				cryptoHtml += `
@@ -300,7 +320,7 @@
                     </tr>
                 `;
 			});
-			document.querySelector('#crypto-table tbody').innerHTML = cryptoHtml;
+			document.querySelector('#crypto-table-body').innerHTML = cryptoHtml;
 
 			let stockHtml = '';
 			data.stockSignals.forEach(signal => {
@@ -319,33 +339,44 @@
                     </tr>
                 `;
 			});
-			document.querySelector('#stock-table tbody').innerHTML = stockHtml;
-
-			const now = new Date();
-			document.getElementById('update-time').textContent = now.toLocaleTimeString();
+			document.querySelector('#stock-table-body').innerHTML = stockHtml;
 		}
 
-		function refreshData() {
-			document.querySelector('#scalping-table tbody').innerHTML =
-				'<tr><td colspan="10" class="text-center loading-text"><span></span><span></span><span></span></td></tr>';
-			document.querySelector('#crypto-table tbody').innerHTML =
-				'<tr><td colspan="10" class="text-center loading-text"><span></span><span></span><span></span></td></tr>';
-			document.querySelector('#stock-table tbody').innerHTML =
+		function refreshScalping() {
+			document.querySelector('#scalping-table-body').innerHTML =
 				'<tr><td colspan="10" class="text-center loading-text"><span></span><span></span><span></span></td></tr>';
 
-			fetch('/dashboard/refresh')
+			fetch('/dashboard/refresh-scalping')
 				.then(response => response.json())
 				.then(data => {
-					updateTables(data);
+					updateScalpingTable(data);
 				})
-				.catch(error => console.error('Error refreshing data:', error));
+				.catch(error => console.error('Error refreshing scalping data:', error));
+		}
+
+		function refreshSignals() {
+			document.querySelector('#crypto-table-body').innerHTML =
+				'<tr><td colspan="10" class="text-center loading-text"><span></span><span></span><span></span></td></tr>';
+			document.querySelector('#stock-table-body').innerHTML =
+				'<tr><td colspan="10" class="text-center loading-text"><span></span><span></span><span></span></td></tr>';
+
+			fetch('/dashboard/refresh-signals')
+				.then(response => response.json())
+				.then(data => {
+					updateSignalsTables(data);
+				})
+				.catch(error => console.error('Error refreshing signals data:', error));
 		}
 
 		document.addEventListener('DOMContentLoaded', function() {
-			refreshData();
+			refreshScalping();
+			refreshSignals();
 		});
 
-		setInterval(refreshData, 900000);
+		setInterval(() => {
+			refreshScalping();
+			refreshSignals();
+		}, 900000);
 	</script>
 </body>
 

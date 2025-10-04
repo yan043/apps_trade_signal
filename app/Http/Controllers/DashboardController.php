@@ -67,34 +67,7 @@ class DashboardController extends Controller
             'ENJUSDT'
         ];
 
-        $scalpingSignals = [];
-        foreach ($cryptoSymbols as $symbol)
-        {
-            $signal = $this->scalpingService->analyzeScalping($symbol);
-            if ($signal !== null && $signal['action'] !== 'HOLD')
-            {
-                $scalpingSignals[] = $signal;
-            }
-        }
-
-        usort($scalpingSignals, function ($a, $b)
-        {
-            if ($a['action'] === 'BUY' && $b['action'] === 'SELL') return -1;
-            if ($a['action'] === 'SELL' && $b['action'] === 'BUY') return 1;
-
-            if ($a['action'] === 'BUY')
-            {
-                $aStrength = abs($a['rsi'] - 52.5);
-                $bStrength = abs($b['rsi'] - 52.5);
-            }
-            else
-            {
-                $aStrength = abs($a['rsi'] - 47.5);
-                $bStrength = abs($b['rsi'] - 47.5);
-            }
-
-            return $aStrength <=> $bStrength;
-        });
+        $scalpingSignals = []; // Scalping will be loaded via AJAX
 
         return view('dashboard', compact('cryptoSignals', 'stockSignals', 'scalpingSignals'));
     }
@@ -124,6 +97,59 @@ class DashboardController extends Controller
         return response()->json([
             'cryptoSignals'   => $cryptoSignals,
             'stockSignals'    => $stockSignals,
+            'scalpingSignals' => $scalpingSignals,
+        ]);
+    }
+
+    public function refreshSignals(\App\Services\SignalService $signalService)
+    {
+        $signalService->populateAssets();
+        $signalService->analyze();
+
+        $cryptoSignals = \App\Models\Signal::with('asset')->whereHas('asset', fn($q) => $q->where('market', 'crypto'))->get();
+        $stockSignals  = \App\Models\Signal::with('asset')->whereHas('asset', fn($q) => $q->where('market', 'stock'))->get();
+
+        return response()->json([
+            'cryptoSignals' => $cryptoSignals,
+            'stockSignals'  => $stockSignals,
+        ]);
+    }
+
+    public function refreshScalping(\App\Services\ScalpingSignalService $scalpingService, \App\Services\SignalService $signalService)
+    {
+        $cryptoSymbolsData = $signalService->fetchTopCryptoSymbols();
+        $cryptoSymbols = array_column($cryptoSymbolsData, 'symbol');
+
+        $scalpingSignals = [];
+        foreach ($cryptoSymbols as $symbol)
+        {
+            $signal = $scalpingService->analyzeScalping($symbol);
+            if ($signal !== null && $signal['action'] !== 'HOLD')
+            {
+                $scalpingSignals[] = $signal;
+            }
+        }
+
+        usort($scalpingSignals, function ($a, $b)
+        {
+            if ($a['action'] === 'BUY' && $b['action'] === 'SELL') return -1;
+            if ($a['action'] === 'SELL' && $b['action'] === 'BUY') return 1;
+
+            if ($a['action'] === 'BUY')
+            {
+                $aStrength = abs($a['rsi'] - 52.5);
+                $bStrength = abs($b['rsi'] - 52.5);
+            }
+            else
+            {
+                $aStrength = abs($a['rsi'] - 47.5);
+                $bStrength = abs($b['rsi'] - 47.5);
+            }
+
+            return $aStrength <=> $bStrength;
+        });
+
+        return response()->json([
             'scalpingSignals' => $scalpingSignals,
         ]);
     }
