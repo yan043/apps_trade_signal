@@ -368,7 +368,7 @@
 		function refreshScalping() {
 			document.querySelector('#scalping-table-body').innerHTML =
 				'<tr><td colspan="8" class="text-center loading-text"><span></span><span></span><span></span></td></tr>';
-			fetch('/dashboard/refresh-scalping').then(res => res.json()).then(updateScalpingTable).catch(err => console.error(
+			fetch('/refresh-scalping').then(res => res.json()).then(updateScalpingTable).catch(err => console.error(
 				err));
 		}
 
@@ -377,7 +377,7 @@
 				'<tr><td colspan="5" class="text-center loading-text"><span></span><span></span><span></span></td></tr>';
 			document.querySelector('#stock-table-body').innerHTML =
 				'<tr><td colspan="5" class="text-center loading-text"><span></span><span></span><span></span></td></tr>';
-			fetch('/dashboard/refresh-signals').then(res => res.json()).then(updateSignalsTables).catch(err => console.error(
+			fetch('/refresh-signals').then(res => res.json()).then(updateSignalsTables).catch(err => console.error(
 				err));
 		}
 
