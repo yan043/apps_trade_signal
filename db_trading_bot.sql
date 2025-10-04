@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Waktu pembuatan: 03 Okt 2025 pada 09.34
+-- Waktu pembuatan: 04 Okt 2025 pada 06.48
 -- Versi server: 8.0.43-0ubuntu0.24.04.2
 -- Versi PHP: 8.3.6
 
@@ -89,16 +89,6 @@ ALTER TABLE `assets`
 --
 ALTER TABLE `signals`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
---
-
---
--- Ketidakleluasaan untuk tabel `signals`
---
-ALTER TABLE `signals`
-  ADD CONSTRAINT `signals_asset_id_foreign` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
