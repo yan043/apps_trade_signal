@@ -146,37 +146,52 @@
 			@endphp
 		</div>
 
-		<!-- Scalping Crypto Signals -->
 		<div class="card">
 			<div class="card-header">
-				<h5 class="mb-0">📊 Scalping Crypto Signals</h5>
+				<h5 class="mb-0">📈 Stock Signals</h5>
 			</div>
 			<div class="card-body">
 				<div class="table-responsive">
-					<table class="table table-striped table-hover text-center" id="scalping-table">
+					<table class="table table-striped table-hover text-center" id="stock-table">
 						<thead>
 							<tr>
 								<th>Symbol</th>
-								<th>Price</th>
-								<th>EMA9</th>
-								<th>EMA21</th>
-								<th>RSI</th>
-								<th>Action</th>
-								<th>TP</th>
-								<th>SL</th>
+								<th>Entry Price</th>
+								<th>Target</th>
+								<th>Stop Loss</th>
+								<th>Trend</th>
 							</tr>
 						</thead>
-						<tbody id="scalping-table-body">
-							<tr>
-								<td colspan="8" class="text-center loading-text"><span></span><span></span><span></span></td>
-							</tr>
+						<tbody id="stock-table-body">
+							@foreach ($stockSignals as $signal)
+								<tr>
+									<td>{{ $signal->asset->symbol }}</td>
+									<td>{{ number_format($signal->entry_price, 2, ',', '.') }}</td>
+									<td>
+										{{ number_format($signal->target_price, 2, ',', '.') }}
+										({{ number_format($signal->expected_gain, 2, ',', '.') }}%)
+										<br>
+										{{ number_format($signal->target_price_2, 2, ',', '.') }}
+										({{ number_format($signal->expected_gain_2, 2, ',', '.') }}%)<br>
+										{{ number_format($signal->target_price_3, 2, ',', '.') }}
+										({{ number_format($signal->expected_gain_3, 2, ',', '.') }}%)
+									</td>
+									<td>{{ number_format($signal->stop_loss, 2, ',', '.') }}</td>
+									<td>
+										@if ($signal->entry_price < $signal->target_price)
+											<span class="badge badge-success">🔺 Bullish</span>
+										@else
+											<span class="badge badge-danger">🔻 Bearish</span>
+										@endif
+									</td>
+								</tr>
+							@endforeach
 						</tbody>
 					</table>
 				</div>
 			</div>
 		</div>
 
-		<!-- Crypto Signals -->
 		<div class="card">
 			<div class="card-header">
 				<h5 class="mb-0">💹 Crypto Signals</h5>
@@ -223,52 +238,35 @@
 			</div>
 		</div>
 
-		<!-- Stock Signals -->
 		<div class="card">
 			<div class="card-header">
-				<h5 class="mb-0">📈 Stock Signals</h5>
+				<h5 class="mb-0">📊 Scalping Crypto Signals</h5>
 			</div>
 			<div class="card-body">
 				<div class="table-responsive">
-					<table class="table table-striped table-hover text-center" id="stock-table">
+					<table class="table table-striped table-hover text-center" id="scalping-table">
 						<thead>
 							<tr>
 								<th>Symbol</th>
-								<th>Entry Price</th>
-								<th>Target</th>
-								<th>Stop Loss</th>
-								<th>Trend</th>
+								<th>Price</th>
+								<th>EMA9</th>
+								<th>EMA21</th>
+								<th>RSI</th>
+								<th>Action</th>
+								<th>TP</th>
+								<th>SL</th>
 							</tr>
 						</thead>
-						<tbody id="stock-table-body">
-							@foreach ($stockSignals as $signal)
-								<tr>
-									<td>{{ $signal->asset->symbol }}</td>
-									<td>{{ number_format($signal->entry_price, 2, ',', '.') }}</td>
-									<td>
-										{{ number_format($signal->target_price, 2, ',', '.') }}
-										({{ number_format($signal->expected_gain, 2, ',', '.') }}%)
-										<br>
-										{{ number_format($signal->target_price_2, 2, ',', '.') }}
-										({{ number_format($signal->expected_gain_2, 2, ',', '.') }}%)<br>
-										{{ number_format($signal->target_price_3, 2, ',', '.') }}
-										({{ number_format($signal->expected_gain_3, 2, ',', '.') }}%)
-									</td>
-									<td>{{ number_format($signal->stop_loss, 2, ',', '.') }}</td>
-									<td>
-										@if ($signal->entry_price < $signal->target_price)
-											<span class="badge badge-success">🔺 Bullish</span>
-										@else
-											<span class="badge badge-danger">🔻 Bearish</span>
-										@endif
-									</td>
-								</tr>
-							@endforeach
+						<tbody id="scalping-table-body">
+							<tr>
+								<td colspan="8" class="text-center loading-text"><span></span><span></span><span></span></td>
+							</tr>
 						</tbody>
 					</table>
 				</div>
 			</div>
 		</div>
+
 	</div>
 
 	<script>
@@ -308,33 +306,6 @@
 			setInterval(showTime, 500);
 		}
 
-		function updateScalpingTable(data) {
-			let html = '';
-			data.scalpingSignals.forEach(signal => {
-				let actionBadge = signal.action === 'BUY' ? '<span class="badge badge-success">BUY</span>' : (signal
-					.action === 'SELL' ? '<span class="badge badge-danger">SELL</span>' :
-					'<span class="badge badge-secondary">HOLD</span>');
-				const fmt = num => num.toLocaleString('id-ID', {
-					minimumFractionDigits: 2,
-					maximumFractionDigits: 2
-				});
-				html += `<tr>
-                    <td>${signal.symbol}</td>
-                    <td>${fmt(signal.price)}</td>
-                    <td>${signal.ema9?fmt(signal.ema9):'N/A'}</td>
-                    <td>${signal.ema21?fmt(signal.ema21):'N/A'}</td>
-                    <td>${signal.rsi?fmt(signal.rsi):'N/A'}</td>
-                    <td>${actionBadge}</td>
-                    <td>${signal.tp1?fmt(signal.tp1)+' ('+fmt(signal.tp1_percentage)+'%)':'-'}<br>
-                        ${signal.tp2?fmt(signal.tp2)+' ('+fmt(signal.tp2_percentage)+'%)':'-'}<br>
-                        ${signal.tp3?fmt(signal.tp3)+' ('+fmt(signal.tp3_percentage)+'%)':'-'}
-                    </td>
-                    <td>${signal.sl?fmt(signal.sl)+' ('+fmt(signal.sl_percentage)+'%)':'-'}</td>
-                </tr>`;
-			});
-			document.querySelector('#scalping-table-body').innerHTML = html;
-		}
-
 		function updateSignalsTables(data) {
 			const fmt = num => parseFloat(num).toLocaleString('id-ID', {
 				minimumFractionDigits: 2,
@@ -365,11 +336,31 @@
 			document.querySelector('#stock-table-body').innerHTML = stockHtml;
 		}
 
-		function refreshScalping() {
-			document.querySelector('#scalping-table-body').innerHTML =
-				'<tr><td colspan="8" class="text-center loading-text"><span></span><span></span><span></span></td></tr>';
-			fetch('/refresh-scalping').then(res => res.json()).then(updateScalpingTable).catch(err => console.error(
-				err));
+		function updateScalpingTable(data) {
+			let html = '';
+			data.scalpingSignals.forEach(signal => {
+				let actionBadge = signal.action === 'BUY' ? '<span class="badge badge-success">BUY</span>' : (signal
+					.action === 'SELL' ? '<span class="badge badge-danger">SELL</span>' :
+					'<span class="badge badge-secondary">HOLD</span>');
+				const fmt = num => num.toLocaleString('id-ID', {
+					minimumFractionDigits: 2,
+					maximumFractionDigits: 2
+				});
+				html += `<tr>
+                    <td>${signal.symbol}</td>
+                    <td>${fmt(signal.price)}</td>
+                    <td>${signal.ema9?fmt(signal.ema9):'N/A'}</td>
+                    <td>${signal.ema21?fmt(signal.ema21):'N/A'}</td>
+                    <td>${signal.rsi?fmt(signal.rsi):'N/A'}</td>
+                    <td>${actionBadge}</td>
+                    <td>${signal.tp1?fmt(signal.tp1)+' ('+fmt(signal.tp1_percentage)+'%)':'-'}<br>
+                        ${signal.tp2?fmt(signal.tp2)+' ('+fmt(signal.tp2_percentage)+'%)':'-'}<br>
+                        ${signal.tp3?fmt(signal.tp3)+' ('+fmt(signal.tp3_percentage)+'%)':'-'}
+                    </td>
+                    <td>${signal.sl?fmt(signal.sl)+' ('+fmt(signal.sl_percentage)+'%)':'-'}</td>
+                </tr>`;
+			});
+			document.querySelector('#scalping-table-body').innerHTML = html;
 		}
 
 		function refreshSignals() {
@@ -381,12 +372,19 @@
 				err));
 		}
 
+		function refreshScalping() {
+			document.querySelector('#scalping-table-body').innerHTML =
+				'<tr><td colspan="8" class="text-center loading-text"><span></span><span></span><span></span></td></tr>';
+			fetch('/refresh-scalping').then(res => res.json()).then(updateScalpingTable).catch(err => console.error(
+				err));
+		}
+
 		document.addEventListener('DOMContentLoaded', () => {
-			refreshScalping();
 			refreshSignals();
+			refreshScalping();
 			setInterval(() => {
-				refreshScalping();
 				refreshSignals();
+				refreshScalping();
 			}, 900000);
 		});
 	</script>
