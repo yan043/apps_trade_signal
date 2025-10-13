@@ -4,6 +4,7 @@
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="csrf-token" content="{{ csrf_token() }}" />
 	<title>Signal Stock Indonesia & Crypto</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
 	<link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
@@ -133,36 +134,69 @@
 		}
 		.btn-toggle .chevron { width: 14px; height: 14px; transition: transform .2s ease; }
 		.btn-toggle[aria-expanded="false"] .chevron { transform: rotate(-90deg); }
+
+		.table-updating {
+			opacity: 0.6;
+			transition: opacity 0.3s ease;
+		}
+
+		.table-updated {
+			background-color: rgba(40, 167, 69, 0.1);
+			transition: background-color 0.5s ease;
+		}
+
+		#countdown-timer-1, #countdown-timer-2 {
+			font-family: 'Courier New', monospace;
+			font-weight: 600;
+			color: #6c757d;
+			font-size: 0.85rem;
+			min-width: 40px;
+			text-align: center;
+		}
+
+		.watermark {
+			position: fixed;
+			inset: 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			pointer-events: none;
+			z-index: 10;
+		}
+
+		.watermark-content {
+			transform: rotate(-30deg);
+			text-align: center;
+			user-select: none;
+		}
+
+		.watermark-content .wm-line {
+			font-size: clamp(24px, 8vw, 96px);
+			font-weight: 700;
+			letter-spacing: 0.08em;
+			color: rgba(0, 0, 0, 0.06);
+			white-space: nowrap;
+		}
 	</style>
 
 </head>
 
 <body>
+	<div class="watermark" aria-hidden="true">
+		<div class="watermark-content">
+			<div class="wm-line">Data Powered by TradingView</div>
+			<div class="wm-line">Github @yan043</div>
+		</div>
+	</div>
 	<div class="container-fluid mt-4">
 		<h1 class="text-center mb-3">🚀 Signal Stock Indonesia & Crypto</h1>
-		<div class="text-center mb-3">
-			<small class="text-muted d-block">
-				<span class="brand-icon" aria-hidden="true">
-					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M3 21V3"/>
-						<path d="M3 21h18"/>
-						<path d="M7 14l4-4 3 3 5-6"/>
-					</svg>
-				</span>
-				Data Powered by TradingView
-			</small>
-			<small class="text-muted d-block">
-				<span class="brand-icon" aria-hidden="true">
-					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
-						<path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.01.08-2.11 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.91.08 2.11.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38C13.71 14.53 16 11.54 16 8c0-4.42-3.58-8-8-8z"/>
-					</svg>
-				</span>
-				Created by Mahdian (yan043)
-			</small>
-		</div>
 		<div class="text-center mb-4">
 			<div class="last-updated" id="last-updated">
 				<span id="clock"></span>
+				<span id="refresh-indicator" class="ms-2" style="display: none;">
+					<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+					Memperbarui...
+				</span>
 			</div>
 			@php
 				$ua = strtolower($_SERVER['HTTP_USER_AGENT']);
@@ -175,9 +209,12 @@
 				<div class="card">
 					<div class="card-header d-flex align-items-center justify-content-between">
 						<span>Top Volume — Buy Candidates</span>
-						<button class="btn btn-sm btn-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTopVolume" aria-expanded="true" aria-controls="collapseTopVolume">
-							<svg class="chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M11.354 10.354 8 7 4.646 10.354l-.708-.708L8 5.586l4.062 4.06-.708.708z"/></svg>
-						</button>
+						<div class="d-flex align-items-center gap-2">
+							<small class="text-muted" id="countdown-timer-1">15:00</small>
+							<button class="btn btn-sm btn-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTopVolume" aria-expanded="true" aria-controls="collapseTopVolume">
+								<svg class="chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M11.354 10.354 8 7 4.646 10.354l-.708-.708L8 5.586l4.062 4.06-.708.708z"/></svg>
+							</button>
+						</div>
 					</div>
 					<div id="collapseTopVolume" class="collapse show">
 					<div class="card-body">
@@ -238,9 +275,12 @@
 				<div class="card">
 					<div class="card-header d-flex align-items-center justify-content-between">
 						<span>Technical Ratings — Strong</span>
-						<button class="btn btn-sm btn-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTechRatings" aria-expanded="true" aria-controls="collapseTechRatings">
-							<svg class="chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M11.354 10.354 8 7 4.646 10.354l-.708-.708L8 5.586l4.062 4.06-.708.708z"/></svg>
-						</button>
+						<div class="d-flex align-items-center gap-2">
+							<small class="text-muted" id="countdown-timer-2">15:00</small>
+							<button class="btn btn-sm btn-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTechRatings" aria-expanded="true" aria-controls="collapseTechRatings">
+								<svg class="chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M11.354 10.354 8 7 4.646 10.354l-.708-.708L8 5.586l4.062 4.06-.708.708z"/></svg>
+							</button>
+						</div>
 					</div>
 					<div id="collapseTechRatings" class="collapse show">
 					<div class="card-body">
@@ -326,6 +366,123 @@
 
 	<script>
 		var isMob = {!! json_encode($isMob) !!};
+		var tvTable, trTable;
+
+		var countdownInterval;
+		var timeRemaining = 15 * 60;
+
+		function updateTables() {
+			$('#refresh-indicator').show();
+			
+			$('#top-volume-table').addClass('table-updating');
+			$('#tech-rating-table').addClass('table-updating');
+			
+			$.ajax({
+				url: '/api/stock-data',
+				method: 'GET',
+				dataType: 'json',
+				success: function(data) {
+					if (data.stock_top_volume_for_buy && tvTable) {
+						updateTopVolumeTable(data.stock_top_volume_for_buy);
+					}
+					
+					if (data.stock_technical_analysis && trTable) {
+						updateTechnicalAnalysisTable(data.stock_technical_analysis);
+					}
+					
+					$('#top-volume-table, #tech-rating-table').removeClass('table-updating');
+					$('#top-volume-table, #tech-rating-table').addClass('table-updated');
+					
+					setTimeout(function() {
+						$('#top-volume-table, #tech-rating-table').removeClass('table-updated');
+					}, 2000);
+					
+					$('#refresh-indicator').hide();
+					
+					timeRemaining = 15 * 60;
+				},
+				error: function(xhr, status, error) {
+					console.error('Error updating data:', error);
+					$('#top-volume-table, #tech-rating-table').removeClass('table-updating');
+					$('#refresh-indicator').hide();
+				}
+			});
+		}
+
+		function updateCountdown() {
+			var minutes = Math.floor(timeRemaining / 60);
+			var seconds = timeRemaining % 60;
+			var timeString = (minutes < 10 ? '0' : '') + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+			
+			$('#countdown-timer-1, #countdown-timer-2').text(timeString);
+			
+			if (timeRemaining <= 0) {
+				updateTables();
+			} else {
+				timeRemaining--;
+			}
+		}
+
+		function updateTopVolumeTable(data) {
+			tvTable.clear();
+			
+			data.forEach(function(row) {
+				var changeClass = row.change.startsWith('+') ? 'value-up' : 'value-down';
+				var analystRatingHtml = getAnalystRatingHtml(row.analystRating);
+				
+				tvTable.row.add([
+					'<div class="symbol-cell"><img src="' + row.logo + '" alt="logo" class="logo" /><span>' + row.name + '</span><small class="text-muted">' + row.description + '</small></div>',
+					number_format(row.close) + ' <small class="text-muted">' + row.currency + '</small>',
+					'<span class="' + changeClass + '">' + row.change + '</span>',
+					row.value,
+					analystRatingHtml
+				]);
+			});
+			
+			tvTable.draw();
+		}
+
+		function updateTechnicalAnalysisTable(data) {
+			trTable.clear();
+			
+			data.forEach(function(row) {
+				var techHtml = getTechnicalRatingHtml(row.techRating_1D);
+				var maHtml = getTechnicalRatingHtml(row.maRating_1D);
+				var oscHtml = getTechnicalRatingHtml(row.osRating_1D);
+				
+				trTable.row.add([
+					'<div class="symbol-cell"><img src="' + row.logo + '" alt="logo" class="logo" /><span>' + row.name + '</span><small class="text-muted">' + row.description + '</small></div>',
+					techHtml,
+					maHtml,
+					oscHtml
+				]);
+			});
+			
+			trTable.draw();
+		}
+
+		function getAnalystRatingHtml(rating) {
+			if (rating === 'Strong Buy') {
+				return '<span class="value-up"><span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><path fill="currentColor" d="M9 3.3 13.7 8l-.7.7-4-4-4 4-.7-.7L9 3.3Zm0 6 4.7 4.7-.7.7-4-4-4 4-.7-.7L9 9.3Z"></path></svg></span>Strong Buy</span>';
+			} else if (rating === 'Buy') {
+				return '<span class="value-up"><span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><path fill="currentColor" d="m4.67 10.62.66.76L9 8.16l3.67 3.22.66-.76L9 6.84l-4.33 3.78Z"></path></svg></span>Buy</span>';
+			}
+			return '<span>' + rating + '</span>';
+		}
+
+		function getTechnicalRatingHtml(rating) {
+			if (rating === 'Strong Buy') {
+				return '<span class="value-up"><span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><path fill="currentColor" d="M9 3.3 13.7 8l-.7.7-4-4-4 4-.7-.7L9 3.3Zm0 6 4.7 4.7-.7.7-4-4-4 4-.7-.7L9 9.3Z"></path></svg></span>Strong Buy</span>';
+			} else if (rating === 'Buy') {
+				return '<span class="value-up"><span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><path fill="currentColor" d="m4.67 10.62.66.76L9 8.16l3.67 3.22.66-.76L9 6.84l-4.33 3.78Z"></path></svg></span>Buy</span>';
+			}
+			return '<span>' + rating + '</span>';
+		}
+
+		function number_format(number) {
+			return parseFloat(number).toLocaleString('id-ID');
+		}
+
 		if (isMob == false) {
 			function showTime() {
 				var months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September','Oktober', 'November', 'Desember'];
@@ -351,7 +508,13 @@
 		}
 
 		$(document).ready(function() {
-			var tvTable = $('#top-volume-table').DataTable({
+			$.ajaxSetup({
+				headers: {
+					'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+				}
+			});
+
+			tvTable = $('#top-volume-table').DataTable({
 				"pageLength": 50,
 				"lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
 				"order": [],
@@ -371,7 +534,7 @@
 				}
 			});
 
-			var trTable = $('#tech-rating-table').DataTable({
+			trTable = $('#tech-rating-table').DataTable({
 				"pageLength": 50,
 				"lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
 				"order": [],
@@ -402,6 +565,11 @@
 					}
 				});
 			});
+
+			setInterval(updateTables, 900000);
+
+			updateCountdown();
+			countdownInterval = setInterval(updateCountdown, 1000);
 		});
 	</script>
 </body>

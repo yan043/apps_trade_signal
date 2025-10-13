@@ -2,15 +2,32 @@
 
 namespace App\Http\Controllers;
 
-class DashboardController extends Controller
+use Illuminate\Http\Request;
+
+class ApiController extends Controller
 {
-    public function index()
+    public function getStockData()
     {
-        $stock_top_volume_for_buy = self::stock_top_volume_for_buy();
+        $stock_top_volume_for_buy = $this->stock_top_volume_for_buy();
 
-        $stock_technical_analysis  = self::stock_technical_analysis();
+        $stock_technical_analysis = $this->stock_technical_analysis();
 
-        return view('dashboard', compact('stock_top_volume_for_buy', 'stock_technical_analysis'));
+        $lastUpdated = now()->format('Y-m-d H:i:s');
+
+        return response()->json([
+            'stock_top_volume_for_buy' => $stock_top_volume_for_buy,
+            'stock_technical_analysis' => $stock_technical_analysis,
+            'last_updated'             => $lastUpdated,
+            'payload' => [
+                'top_volume' => $stock_top_volume_for_buy,
+                'technical_analysis' => $stock_technical_analysis,
+                'counts' => [
+                    'top_volume' => is_array($stock_top_volume_for_buy) ? count($stock_top_volume_for_buy) : 0,
+                    'technical_analysis' => is_array($stock_technical_analysis) ? count($stock_technical_analysis) : 0,
+                ],
+                'last_updated' => $lastUpdated,
+            ],
+        ]);
     }
 
     private function stock_top_volume_for_buy()

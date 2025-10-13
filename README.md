@@ -1,61 +1,62 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<h1 align="center">Signal Stock Indonesia & Crypto – Dashboard</h1>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Dashboard ringan untuk memantau saham Indonesia dan crypto dengan data dari TradingView. Halaman utama menampilkan dua tabel: Top Volume (kandidat beli) dan Technical Ratings (Strong). Data diperbarui otomatis tiap 15 menit tanpa reload halaman.
 
-## About Laravel
+## Fitur Utama
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Top Volume — Buy Candidates (filter: AnalystRating Buy/Strong Buy)
+- Technical Ratings — Strong (kombinasi Tech/MAs/Osc Strong Buy/Buy)
+- Auto-refresh 15 menit dengan countdown di header card
+- Tabel interaktif (DataTables: search, sort, pagination) tanpa kehilangan state
+- Watermark diagonal ala Word (non-intrusif, tidak mengganggu klik)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Arsitektur & Alur Data
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Route: `GET /` → `DashboardController@index`
+	- Memanggil dua method privat untuk ambil data awal:
+		- `stock_top_volume_for_buy()` → memanggil TradingView Scanner market "indonesia" (POST scan) dan memfilter baris dengan `AnalystRating` ∈ {Buy, StrongBuy}. Data diolah: logo, name, description, close, currency, change, value, analystRating.
+		- `stock_technical_analysis()` → memanggil TradingView Scanner dengan kolom TechRating/MARating/OsRating. Disaring pada kombinasi sinyal kuat (StrongBuy/Buy) dan diubah ke label yang ramah (Strong Buy/Buy).
+- API: `GET /api/stock-data` → `ApiController@getStockData`
+	- Mengembalikan JSON: `stock_top_volume_for_buy`, `stock_technical_analysis`, `last_updated`.
+- View: `resources/views/dashboard.blade.php`
+	- Dua tabel DataTables. Auto-refresh via AJAX ke `/api/stock-data` setiap 15 menit. Saat refresh: tabel diberi efek updating/updated, dan countdown di-reset. Countdown tampil di samping tombol collapse setiap card.
+	- Proteksi AJAX dengan CSRF meta token.
+	- Watermark diagonal: "Data Powered by TradingView" dan "Created by Mahdian (yan043)".
 
-## Learning Laravel
+## Sumber Data (TradingView Scanner)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Aplikasi melakukan HTTP POST ke endpoint TradingView Scanner:
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- `https://scanner.tradingview.com/indonesia/scan?label-product=markets-screener`
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Payload berisi daftar kolom yang dibutuhkan dan pengurutan, lalu hasil dipilah/di-format di server sebelum dikirim ke klien. Nilai seperti `StrongBuy` diubah menjadi label "Strong Buy" agar konsisten di UI.
 
-## Laravel Sponsors
+## Cara Menjalankan (Windows/PowerShell)
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+1. Pastikan PHP dan Composer sudah terpasang (repo ini sudah vendor-ready).
+2. Jalankan server pengembangan Laravel:
 
-### Premium Partners
+	 ```powershell
+	 php artisan serve
+	 ```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+3. Buka browser ke alamat yang ditampilkan (default: http://127.0.0.1:8000).
 
-## Contributing
+Catatan: Aplikasi memuat CSS/JS DataTables dan Bootstrap dari CDN.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Kustomisasi Singkat
 
-## Code of Conduct
+- Interval refresh: ubah di `dashboard.blade.php` (nilai `timeRemaining = 15 * 60;`).
+- Countdown/tampilan: CSS ada di `<style>` pada `dashboard.blade.php`.
+- Filter logika sinyal: sesuaikan di `DashboardController` dan/atau `ApiController` pada kondisi filtering array `$item['d'][idx]`.
+- Route/API: `routes/web.php`.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Keamanan & Batasan
 
-## Security Vulnerabilities
+- AJAX menggunakan CSRF token dari meta tag.
+- Data bersumber dari layanan pihak ketiga (TradingView); struktur kolom/endpoint dapat berubah sewaktu-waktu.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Kredit
 
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- Data Powered by TradingView
+- Created by Mahdian (yan043)
