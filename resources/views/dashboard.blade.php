@@ -413,12 +413,25 @@
 				method: 'GET',
 				dataType: 'json',
 				success: function(data) {
+					var tablesUpdated = 0;
+					var totalTables = 0;
+					
 					if (data.stock_top_volume_for_buy && tvTable) {
+						totalTables++;
 						updateTopVolumeTable(data.stock_top_volume_for_buy);
+						tablesUpdated++;
 					}
 					
 					if (data.stock_technical_analysis && trTable) {
+						totalTables++;
 						updateTechnicalAnalysisTable(data.stock_technical_analysis);
+						tablesUpdated++;
+					}
+					
+					if (tablesUpdated === totalTables && totalTables > 0) {
+						setTimeout(function() {
+							highlightMatchingRows();
+						}, 300);
 					}
 					
 					$('#top-volume-table, #tech-rating-table').removeClass('table-updating');
@@ -433,7 +446,6 @@
 					timeRemaining = 15 * 60;
 				},
 				error: function(xhr, status, error) {
-					console.error('Error updating data:', error);
 					$('#top-volume-table, #tech-rating-table').removeClass('table-updating');
 					$('#refresh-indicator').hide();
 				}
@@ -457,6 +469,10 @@
 		function getMatchingStocks() {
 			var matches = [];
 			
+			if (topVolumeStocks.length === 0 || technicalAnalysisStocks.length === 0) {
+				return matches;
+			}
+			
 			topVolumeStocks.forEach(function(tvStock) {
 				var match = technicalAnalysisStocks.find(function(taStock) {
 					return taStock.name === tvStock.name;
@@ -471,30 +487,74 @@
 		}
 
 		function highlightMatchingRows() {
-			var matchingStocks = getMatchingStocks();
-			
 			$('#top-volume-table tbody tr, #tech-rating-table tbody tr').removeClass('stock-match-highlight');
 			$('.match-indicator').remove();
 			
+			var matchingStocks = getMatchingStocks();
+			
 			if (matchingStocks.length > 0) {
 				matchingStocks.forEach(function(stockName) {
-					$('#top-volume-table tbody tr').each(function() {
-						var rowStockName = $(this).find('.symbol-cell span').first().text();
-						if (rowStockName === stockName) {
-							$(this).addClass('stock-match-highlight');
-							var indicator = '<span class="match-indicator">MATCH</span>';
-							$(this).find('.symbol-cell').first().append(indicator);
+					try {
+						if (tvTable && tvTable.rows) {
+							tvTable.rows().every(function(rowIdx, tableLoop, rowLoop) {
+								var data = this.data();
+								if (data && data[0]) {
+									var tempDiv = $('<div>').html(data[0]);
+									var rowStockName = tempDiv.find('span').first().text().trim();
+									
+									if (rowStockName === stockName) {
+										var node = this.node();
+										$(node).addClass('stock-match-highlight');
+										var symbolCell = $(node).find('.symbol-cell').first();
+										if (symbolCell.find('.match-indicator').length === 0) {
+											symbolCell.append('<span class="match-indicator">MATCH</span>');
+										}
+									}
+								}
+							});
 						}
-					});
-					
-					$('#tech-rating-table tbody tr').each(function() {
-						var rowStockName = $(this).find('.symbol-cell span').first().text();
-						if (rowStockName === stockName) {
-							$(this).addClass('stock-match-highlight');
-							var indicator = '<span class="match-indicator">MATCH</span>';
-							$(this).find('.symbol-cell').first().append(indicator);
+						
+						if (trTable && trTable.rows) {
+							trTable.rows().every(function(rowIdx, tableLoop, rowLoop) {
+								var data = this.data();
+								if (data && data[0]) {
+									var tempDiv = $('<div>').html(data[0]);
+									var rowStockName = tempDiv.find('span').first().text().trim();
+									
+									if (rowStockName === stockName) {
+										var node = this.node();
+										$(node).addClass('stock-match-highlight');
+										var symbolCell = $(node).find('.symbol-cell').first();
+										if (symbolCell.find('.match-indicator').length === 0) {
+											symbolCell.append('<span class="match-indicator">MATCH</span>');
+										}
+									}
+								}
+							});
 						}
-					});
+					} catch (e) {
+						$('#top-volume-table tbody tr').each(function() {
+							var rowStockName = $(this).find('.symbol-cell span').first().text().trim();
+							if (rowStockName === stockName) {
+								$(this).addClass('stock-match-highlight');
+								var symbolCell = $(this).find('.symbol-cell').first();
+								if (symbolCell.find('.match-indicator').length === 0) {
+									symbolCell.append('<span class="match-indicator">MATCH</span>');
+								}
+							}
+						});
+						
+						$('#tech-rating-table tbody tr').each(function() {
+							var rowStockName = $(this).find('.symbol-cell span').first().text().trim();
+							if (rowStockName === stockName) {
+								$(this).addClass('stock-match-highlight');
+								var symbolCell = $(this).find('.symbol-cell').first();
+								if (symbolCell.find('.match-indicator').length === 0) {
+									symbolCell.append('<span class="match-indicator">MATCH</span>');
+								}
+							}
+						});
+					}
 				});
 			}
 		}
@@ -517,8 +577,32 @@
 			});
 			
 			tvTable.draw();
-			
-			setTimeout(highlightMatchingRows, 100);
+		}
+
+		function updateTopVolumeTableAsync(data) {
+			return new Promise(function(resolve) {
+				tvTable.clear();
+				topVolumeStocks = data;
+				
+				data.forEach(function(row) {
+					var changeClass = row.change.startsWith('+') ? 'value-up' : 'value-down';
+					var analystRatingHtml = getAnalystRatingHtml(row.analystRating);
+					
+					tvTable.row.add([
+						'<div class="symbol-cell"><img src="' + row.logo + '" alt="logo" class="logo" /><span>' + row.name + '</span><small class="text-muted">' + row.description + '</small></div>',
+						number_format(row.close) + ' <small class="text-muted">' + row.currency + '</small>',
+						'<span class="' + changeClass + '">' + row.change + '</span>',
+						row.value,
+						analystRatingHtml
+					]);
+				});
+				
+				tvTable.draw();
+				
+				setTimeout(function() {
+					resolve();
+				}, 100);
+			});
 		}
 
 		function updateTechnicalAnalysisTable(data) {
@@ -539,8 +623,32 @@
 			});
 			
 			trTable.draw();
-			
-			setTimeout(highlightMatchingRows, 100);
+		}
+
+		function updateTechnicalAnalysisTableAsync(data) {
+			return new Promise(function(resolve) {
+				trTable.clear();
+				technicalAnalysisStocks = data;
+				
+				data.forEach(function(row) {
+					var techHtml = getTechnicalRatingHtml(row.techRating_1D);
+					var maHtml = getTechnicalRatingHtml(row.maRating_1D);
+					var oscHtml = getTechnicalRatingHtml(row.osRating_1D);
+					
+					trTable.row.add([
+						'<div class="symbol-cell"><img src="' + row.logo + '" alt="logo" class="logo" /><span>' + row.name + '</span><small class="text-muted">' + row.description + '</small></div>',
+						techHtml,
+						maHtml,
+						oscHtml
+					]);
+				});
+				
+				trTable.draw();
+				
+				setTimeout(function() {
+					resolve();
+				}, 100);
+			});
 		}
 
 		function getAnalystRatingHtml(rating) {
@@ -652,7 +760,17 @@
 				topVolumeStocks = {!! json_encode($stock_top_volume_for_buy) !!};
 				technicalAnalysisStocks = {!! json_encode($stock_technical_analysis) !!};
 				
-				setTimeout(highlightMatchingRows, 500);
+				var checkTables = function() {
+					if (tvTable && trTable && 
+						$('#top-volume-table tbody tr').length > 0 && 
+						$('#tech-rating-table tbody tr').length > 0) {
+						highlightMatchingRows();
+					} else {
+						setTimeout(checkTables, 200);
+					}
+				};
+				
+				setTimeout(checkTables, 500);
 			@endif
 
 			setInterval(updateTables, 900000);
