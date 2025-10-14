@@ -1,11 +1,13 @@
 <h1 align="center">Signal Stock Indonesia & Crypto – Dashboard</h1>
 
-Dashboard ringan untuk memantau saham Indonesia dan crypto dengan data dari TradingView. Halaman utama menampilkan dua tabel: Top Volume (kandidat beli) dan Technical Ratings (Strong). Data diperbarui otomatis tiap 15 menit tanpa reload halaman.
+Dashboard ringan untuk memantau saham Indonesia dan crypto dengan data dari TradingView. Halaman utama menampilkan dua tabel: Top Volume (kandidat beli) dan Technical Ratings (Strong). Data diperbarui otomatis tiap 15 menit tanpa reload halaman dengan live market session tracking.
 
 ## Fitur Utama
 
 - **Top Volume — Buy Candidates** (filter: AnalystRating Buy/Strong Buy)
 - **Technical Ratings — Strong** (kombinasi Tech/MAs/Osc Strong Buy/Buy)
+- **Market Session Indicator** - Real-time status perdagangan IDX dengan warna (Open: hijau, Close: merah, Break: kuning)
+- **Asia/Jakarta Timezone** - Semua waktu menggunakan zona waktu Indonesia secara konsisten
 - **Auto-refresh 15 menit** dengan countdown timer real-time di header card
 - **Tabel interaktif** (DataTables: search, sort, pagination) tanpa kehilangan state
 - **Match Indicator** - Highlighting otomatis untuk stocks yang muncul di kedua tabel
@@ -23,6 +25,12 @@ Dashboard ringan untuk memantau saham Indonesia dan crypto dengan data dari Trad
 - API: `GET /api/stock-data` → `ApiController@getStockData`
 	- Mengembalikan JSON: `stock_top_volume_for_buy`, `stock_technical_analysis`, `last_updated`.
 - View: `resources/views/dashboard.blade.php`
+	- **Market Session Tracking**: Live monitoring status perdagangan IDX (Session 2) dengan timezone Asia/Jakarta
+	- **Real-time Clock**: Waktu Indonesia dengan format lengkap di header dashboard
+	- **Color-coded Sessions**: 
+		- 🟢 Session 2: Open (hijau) - saat pasar sedang aktif
+		- 🔴 Session 2: Close (merah) - saat pasar tutup atau di luar jam trading
+		- 🟡 Session 2: Break (kuning) - saat istirahat siang
 	- **Dua tabel DataTables** dengan fitur lengkap: search, sort, pagination
 	- **Auto-refresh** via AJAX ke `/api/stock-data` setiap 15 menit
 	- **Match Detection System**: Otomatis mendeteksi dan highlight stocks yang muncul di kedua tabel
@@ -59,12 +67,32 @@ Payload berisi daftar kolom yang dibutuhkan dan pengurutan, lalu hasil dipilah/d
 
 Catatan: Aplikasi memuat CSS/JS DataTables dan Bootstrap dari CDN.
 
+## Jadwal Market Session IDX
+
+Dashboard menampilkan status perdagangan real-time berdasarkan jadwal resmi IDX:
+
+**Senin - Kamis:**
+- Session 2: 13:30 - 16:30 (Open - hijau)
+- Break: 12:00 - 13:30 (Break - kuning)  
+- Outside hours: (Close - merah)
+
+**Jumat:**
+- Session 2: 14:00 - 16:30 (Open - hijau)
+- Break: 11:30 - 14:00 (Break - kuning)
+- Outside hours: (Close - merah)
+
+**Sabtu - Minggu:**
+- Weekend (Close - merah)
+
 ## Kustomisasi Singkat
 
+- **Market session timing**: ubah jam trading di function `updateMarketSessions()` 
 - **Interval refresh**: ubah di `dashboard.blade.php` (nilai `timeRemaining = 15 * 60;`)
+- **Session colors**: sesuaikan class `.value-up` (hijau), `.value-down` (merah), `.text-warning` (kuning)
 - **Countdown/tampilan**: CSS ada di `<style>` pada `dashboard.blade.php`
 - **Match indicator styling**: sesuaikan class `.match-indicator` dan `.stock-match-highlight` di CSS
 - **Filter logika sinyal**: sesuaikan di `DashboardController` dan/atau `ApiController` pada kondisi filtering array `$item['d'][idx]`
+- **Timezone settings**: ubah "Asia/Jakarta" di function `updateMarketSessions()` dan `showTime()`
 - **Collapsible behavior**: modify Bootstrap collapse classes di HTML dan JavaScript event listeners
 - **Loading animations**: customize `.table-updating` dan `.table-updated` CSS classes
 - **Route/API**: `routes/web.php`
@@ -78,38 +106,6 @@ Sistem otomatis yang mendeteksi stocks yang muncul di kedua tabel:
 - **Match Badge**: Icon bintang dengan label "MATCH" 
 - **Cross-table Sync**: Highlight muncul simultan di kedua tabel
 - **Error Resilient**: Fallback method jika DataTable API gagal
-
-## Keamanan & Batasan
-
-- **CSRF Protection**: AJAX menggunakan CSRF token dari meta tag
-- **Data Source**: Bersumber dari TradingView Scanner; struktur kolom/endpoint dapat berubah sewaktu-waktu
-- **Client-side Processing**: Match detection dan highlighting diproses di browser
-- **Error Handling**: Try-catch blocks untuk mencegah JavaScript errors
-- **Production Ready**: Kode sudah dibersihkan dari debug logs dan comments
-
-## Recent Updates (October 2025)
-
-### ✨ Match Detection System
-- Implemented automatic cross-table stock matching
-- Added visual highlighting with golden theme
-- Real-time badge indicators for matched stocks
-
-### 🎨 Enhanced UI/UX  
-- Collapsible card interface with smooth animations
-- Loading states and visual feedback
-- Responsive design improvements
-- Professional color scheme and typography
-
-### 🔧 Technical Improvements
-- Error-resilient JavaScript with fallback methods
-- Optimized DataTable integration
-- Clean, production-ready code structure
-- Enhanced AJAX handling and timing
-
-### 📱 Mobile Optimization
-- Bootstrap responsive grid system
-- Touch-friendly interface elements  
-- Optimized table rendering for mobile devices
 
 ## Kredit
 

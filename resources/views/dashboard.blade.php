@@ -205,6 +205,30 @@
 			margin-right: 3px;
 			font-size: 0.7rem;
 		}
+
+		.badge-session-active {
+			background-color: rgba(40, 167, 69, 0.15) !important;
+			border-color: rgba(40, 167, 69, 0.4) !important;
+			color: #28a745 !important;
+		}
+
+		.badge-session-inactive {
+			background-color: rgba(108, 117, 125, 0.15) !important;
+			border-color: rgba(108, 117, 125, 0.4) !important;
+			color: #6c757d !important;
+		}
+
+		.badge-session-closed {
+			background-color: rgba(220, 53, 69, 0.15) !important;
+			border-color: rgba(220, 53, 69, 0.4) !important;
+			color: #dc3545 !important;
+		}
+
+		.badge-session-break {
+			background-color: rgba(255, 193, 7, 0.15) !important;
+			border-color: rgba(255, 193, 7, 0.4) !important;
+			color: #ffc107 !important;
+		}
 	</style>
 
 </head>
@@ -236,7 +260,10 @@
 			<div class="col-12 col-md-6">
 				<div class="card">
 					<div class="card-header d-flex align-items-center justify-content-between">
-						<span>Top Volume — Buy Candidates</span>
+						<div>
+							<span>Top Volume — Buy Candidates</span>
+							<br><small id="session-status-1">Session 2: Close</small>
+						</div>
 						<div class="d-flex align-items-center gap-2">
 							<small class="text-muted" id="countdown-timer-1">15:00</small>
 							<button class="btn btn-sm btn-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTopVolume" aria-expanded="true" aria-controls="collapseTopVolume">
@@ -302,7 +329,10 @@
 			<div class="col-12 col-md-6">
 				<div class="card">
 					<div class="card-header d-flex align-items-center justify-content-between">
-						<span>Technical Ratings — Strong</span>
+						<div>
+							<span>Technical Ratings — Strong</span>
+							<br><small id="session-status-2">Session 2: Close</small>
+						</div>
 						<div class="d-flex align-items-center gap-2">
 							<small class="text-muted" id="countdown-timer-2">15:00</small>
 							<button class="btn btn-sm btn-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTechRatings" aria-expanded="true" aria-controls="collapseTechRatings">
@@ -673,25 +703,80 @@
 			return parseFloat(number).toLocaleString('id-ID');
 		}
 
+		function updateMarketSessions() {
+			var jakartaTime = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Jakarta"}));
+			var day = jakartaTime.getDay();
+			var hours = jakartaTime.getHours();
+			var minutes = jakartaTime.getMinutes();
+			var currentTime = hours * 100 + minutes;
+
+			var session2Status = '';
+			var session2Class = '';
+
+			if (day >= 1 && day <= 5) {
+				if (day >= 1 && day <= 4) {
+					if (currentTime >= 900 && currentTime < 1200) {
+						session2Status = 'Session 2: Close';
+						session2Class = 'value-down';
+					} else if (currentTime >= 1200 && currentTime < 1330) {
+						session2Status = 'Session 2: Break';
+						session2Class = 'text-warning';
+					} else if (currentTime >= 1330 && currentTime < 1630) {
+						session2Status = 'Session 2: Open';
+						session2Class = 'value-up';
+					} else {
+						session2Status = 'Session 2: Close';
+						session2Class = 'value-down';
+					}
+				} else if (day === 5) {
+					if (currentTime >= 900 && currentTime < 1130) {
+						session2Status = 'Session 2: Close';
+						session2Class = 'value-down';
+					} else if (currentTime >= 1130 && currentTime < 1400) {
+						session2Status = 'Session 2: Break';
+						session2Class = 'text-warning';
+					} else if (currentTime >= 1400 && currentTime < 1630) {
+						session2Status = 'Session 2: Open';
+						session2Class = 'value-up';
+					} else {
+						session2Status = 'Session 2: Close';
+						session2Class = 'value-down';
+					}
+				}
+			} else {
+				session2Status = 'Session 2: Close';
+				session2Class = 'value-down';
+			}
+
+			var sessionEl1 = document.getElementById('session-status-1');
+			var sessionEl2 = document.getElementById('session-status-2');
+			
+			sessionEl1.textContent = session2Status;
+			sessionEl1.className = session2Class;
+			
+			sessionEl2.textContent = session2Status;
+			sessionEl2.className = session2Class;
+		}
+
 		if (isMob == false) {
 			function showTime() {
 				var months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September','Oktober', 'November', 'Desember'];
 				var myDays = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-				var date = new Date();
-				var day = date.getDate();
-				var month = date.getMonth();
-				var thisDay = date.getDay();
+				
+				var jakartaDate = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Jakarta"}));
+				var day = jakartaDate.getDate();
+				var month = jakartaDate.getMonth();
+				var thisDay = jakartaDate.getDay();
 				thisDay = myDays[thisDay];
-				var yy = date.getFullYear();
+				var yy = jakartaDate.getFullYear();
 				var year = yy;
-				var today = new Date();
-				var curr_hour = today.getHours();
-				var curr_minute = today.getMinutes();
-				var curr_second = today.getSeconds();
+				var curr_hour = jakartaDate.getHours();
+				var curr_minute = jakartaDate.getMinutes();
+				var curr_second = jakartaDate.getSeconds();
 				curr_hour = checkTime(curr_hour);
 				curr_minute = checkTime(curr_minute);
 				curr_second = checkTime(curr_second);
-				document.getElementById('clock').innerHTML = thisDay + ', ' + day + ' ' + months[month] + ' ' + year + ' | ' + curr_hour + ":" + curr_minute + ":" + curr_second;
+				document.getElementById('clock').innerHTML = thisDay + ', ' + day + ' ' + months[month] + ' ' + year + ' | ' + curr_hour + ":" + curr_minute + ":" + curr_second + ' (Asia/Jakarta)';
 			}
 			function checkTime(i) { if (i < 10) i = "0" + i; return i; }
 			setInterval(showTime, 500);
@@ -774,6 +859,9 @@
 			@endif
 
 			setInterval(updateTables, 900000);
+
+			updateMarketSessions();
+			setInterval(updateMarketSessions, 1000);
 
 			updateCountdown();
 			countdownInterval = setInterval(updateCountdown, 1000);
