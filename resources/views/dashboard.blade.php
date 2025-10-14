@@ -177,6 +177,34 @@
 			color: rgba(0, 0, 0, 0.06);
 			white-space: nowrap;
 		}
+
+		.stock-match-highlight {
+			background-color: rgba(255, 193, 7, 0.15) !important;
+			border-left: 4px solid #ffc107 !important;
+		}
+
+		.stock-match-highlight:hover {
+			background-color: rgba(255, 193, 7, 0.25) !important;
+		}
+
+		.match-indicator {
+			display: inline-flex;
+			align-items: center;
+			background-color: #ffc107;
+			color: #212529;
+			font-size: 0.65rem;
+			font-weight: 600;
+			padding: 2px 6px;
+			border-radius: 10px;
+			margin-left: 8px;
+			white-space: nowrap;
+		}
+
+		.match-indicator::before {
+			content: "★";
+			margin-right: 3px;
+			font-size: 0.7rem;
+		}
 	</style>
 
 </head>
@@ -371,6 +399,9 @@
 		var countdownInterval;
 		var timeRemaining = 15 * 60;
 
+		var topVolumeStocks = [];
+		var technicalAnalysisStocks = [];
+
 		function updateTables() {
 			$('#refresh-indicator').show();
 			
@@ -423,8 +454,54 @@
 			}
 		}
 
+		function getMatchingStocks() {
+			var matches = [];
+			
+			topVolumeStocks.forEach(function(tvStock) {
+				var match = technicalAnalysisStocks.find(function(taStock) {
+					return taStock.name === tvStock.name;
+				});
+				
+				if (match) {
+					matches.push(tvStock.name);
+				}
+			});
+			
+			return matches;
+		}
+
+		function highlightMatchingRows() {
+			var matchingStocks = getMatchingStocks();
+			
+			$('#top-volume-table tbody tr, #tech-rating-table tbody tr').removeClass('stock-match-highlight');
+			$('.match-indicator').remove();
+			
+			if (matchingStocks.length > 0) {
+				matchingStocks.forEach(function(stockName) {
+					$('#top-volume-table tbody tr').each(function() {
+						var rowStockName = $(this).find('.symbol-cell span').first().text();
+						if (rowStockName === stockName) {
+							$(this).addClass('stock-match-highlight');
+							var indicator = '<span class="match-indicator">MATCH</span>';
+							$(this).find('.symbol-cell').first().append(indicator);
+						}
+					});
+					
+					$('#tech-rating-table tbody tr').each(function() {
+						var rowStockName = $(this).find('.symbol-cell span').first().text();
+						if (rowStockName === stockName) {
+							$(this).addClass('stock-match-highlight');
+							var indicator = '<span class="match-indicator">MATCH</span>';
+							$(this).find('.symbol-cell').first().append(indicator);
+						}
+					});
+				});
+			}
+		}
+
 		function updateTopVolumeTable(data) {
 			tvTable.clear();
+			topVolumeStocks = data;
 			
 			data.forEach(function(row) {
 				var changeClass = row.change.startsWith('+') ? 'value-up' : 'value-down';
@@ -440,10 +517,13 @@
 			});
 			
 			tvTable.draw();
+			
+			setTimeout(highlightMatchingRows, 100);
 		}
 
 		function updateTechnicalAnalysisTable(data) {
 			trTable.clear();
+			technicalAnalysisStocks = data;
 			
 			data.forEach(function(row) {
 				var techHtml = getTechnicalRatingHtml(row.techRating_1D);
@@ -459,6 +539,8 @@
 			});
 			
 			trTable.draw();
+			
+			setTimeout(highlightMatchingRows, 100);
 		}
 
 		function getAnalystRatingHtml(rating) {
@@ -565,6 +647,13 @@
 					}
 				});
 			});
+
+			@if(isset($stock_top_volume_for_buy) && isset($stock_technical_analysis))
+				topVolumeStocks = {!! json_encode($stock_top_volume_for_buy) !!};
+				technicalAnalysisStocks = {!! json_encode($stock_technical_analysis) !!};
+				
+				setTimeout(highlightMatchingRows, 500);
+			@endif
 
 			setInterval(updateTables, 900000);
 
