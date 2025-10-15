@@ -9,9 +9,7 @@ class ApiController extends Controller
     public function getStockData()
     {
         $stock_price_to_earnings_ratio = $this->stock_price_to_earnings_ratio();
-
         $stock_market_movers_gainers = $this->stock_market_movers_gainers();
-
         $stock_most_active = $this->stock_most_active();
 
         $lastUpdated = now()->format('Y-m-d H:i:s');
@@ -21,20 +19,6 @@ class ApiController extends Controller
             'stock_market_movers_gainers' => $stock_market_movers_gainers,
             'stock_most_active' => $stock_most_active,
             'last_updated' => $lastUpdated,
-
-            'payload' => [
-                'price_to_earnings_ratio' => $stock_price_to_earnings_ratio,
-                'market_movers_gainers' => $stock_market_movers_gainers,
-                'most_active' => $stock_most_active,
-
-                'counts' => [
-                    'price_to_earnings_ratio' => is_array($stock_price_to_earnings_ratio) ? count($stock_price_to_earnings_ratio) : 0,
-                    'market_movers_gainers' => is_array($stock_market_movers_gainers) ? count($stock_market_movers_gainers) : 0,
-                    'most_active' => is_array($stock_most_active) ? count($stock_most_active) : 0,
-                ],
-
-                'last_updated' => $lastUpdated,
-            ],
         ]);
     }
 

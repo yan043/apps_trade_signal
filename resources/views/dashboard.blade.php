@@ -52,17 +52,6 @@
 			border-bottom: 1px solid #dee2e6;
 		}
 
-		.badge-buy {
-			background-color: rgba(34, 171, 148, .15) !important;
-			border-color: rgba(34, 171, 148, .4) !important;
-			color: #22ab94 !important;
-		}
-
-		.badge-strong {
-			background-color: rgba(34, 171, 148, .15) !important;
-			border-color: rgba(34, 171, 148, .4) !important;
-			color: #22ab94 !important;
-		}
 
 		.logo {
 			width: 22px;
@@ -96,15 +85,6 @@
 			line-height: 0;
 			color: inherit;
 		}
-
-		.brand-icon {
-			display: inline-flex;
-			vertical-align: -2px;
-			margin-right: 6px;
-			line-height: 0;
-			color: inherit;
-		}
-		.brand-icon svg { width: 16px; height: 16px; }
 
 		table tbody tr td.value-up {
 			color: #22ab94 !important;
@@ -145,7 +125,7 @@
 			transition: background-color 0.5s ease;
 		}
 
-		#countdown-timer-1, #countdown-timer-2 {
+		#countdown-timer-1 {
 			font-family: 'Courier New', monospace;
 			font-weight: 600;
 			color: #6c757d;
@@ -212,12 +192,6 @@
 			color: #28a745 !important;
 		}
 
-		.badge-session-inactive {
-			background-color: rgba(108, 117, 125, 0.15) !important;
-			border-color: rgba(108, 117, 125, 0.4) !important;
-			color: #6c757d !important;
-		}
-
 		.badge-session-closed {
 			background-color: rgba(220, 53, 69, 0.15) !important;
 			border-color: rgba(220, 53, 69, 0.4) !important;
@@ -247,7 +221,7 @@
 				<span id="clock"></span>
 				<span id="refresh-indicator" class="ms-2" style="display: none;">
 					<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-					Memperbarui...
+					Updating...
 				</span>
 			</div>
 			@php
@@ -257,50 +231,66 @@
 		</div>
 
 		<div class="row g-3">
-			<div class="col-12 col-md-6">
+			<div class="col-12">
 				<div class="card">
 					<div class="card-header d-flex align-items-center justify-content-between">
 						<div>
-							<span>Top Volume — Buy Candidates</span>
-							<br><small id="session-status-1">Session 2: Close</small>
+							<span>Stock Market - Price to Earnings</span>
+							<br><small id="trading-session" class="badge"></small>
 						</div>
 						<div class="d-flex align-items-center gap-2">
-							<small class="text-muted" id="countdown-timer-1">15:00</small>
-							<button class="btn btn-sm btn-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTopVolume" aria-expanded="true" aria-controls="collapseTopVolume">
-								<svg class="chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M11.354 10.354 8 7 4.646 10.354l-.708-.708L8 5.586l4.062 4.06-.708.708z"/></svg>
+							<span id="countdown-timer-1" class="badge bg-light">15:00</span>
+							<button class="btn btn-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStockTable" aria-expanded="true" aria-controls="collapseStockTable">
+								<svg class="chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
+									<path fill-rule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/>
+								</svg>
 							</button>
 						</div>
 					</div>
-					<div id="collapseTopVolume" class="collapse show">
+					<div id="collapseStockTable" class="collapse show">
 					<div class="card-body">
 						<div class="table-responsive">
-							<table class="table table-striped table-hover" id="top-volume-table">
-								<thead>
+							<table id="stock-table" class="table table-hover align-middle">
+								<thead class="table-light">
 									<tr>
-										<th>Symbol</th>
-										<th>Close</th>
-										<th>Change</th>
-										<th>Value</th>
-										<th>Analyst Rating</th>
+										<th>Stock Symbol</th>
+										<th class="text-center">Price</th>
+										<th class="text-center">Change</th>
+										<th class="text-center">Open</th>
+										<th class="text-center">High</th>
+										<th class="text-center">Low</th>
+										<th class="text-center">Volume</th>
+										<th class="text-center">P/E Ratio</th>
+										<th class="text-center">Analyst Rating</th>
 									</tr>
 								</thead>
-								<tbody>
-									@forelse ($stock_top_volume_for_buy as $row)
+									<tbody>
+									@forelse ($stock_price_to_earnings_ratio as $row)
 									<tr>
 										<td class="symbol-cell">
 											<img src="{{ $row['logo'] }}" alt="logo" class="logo" />
 											<span>{{ $row['name'] }}</span>
 											<small class="text-muted">{{ $row['description'] }}</small>
 										</td>
-										<td>
-											{{ number_format($row['close']) }}
+										<td class="text-center">
+											{{ number_format((float)str_replace(',', '', $row['price']), 0, ',', '.') }}
 											<small class="text-muted">{{ $row['currency'] }}</small>
 										</td>
-										<td class="{{ str_starts_with($row['change'], '+') ? 'value-up' : 'value-down' }}">{{ $row['change'] }}</td>
-										<td>{{ $row['value'] }}</td>
-										<td>
+										<td class="text-center {{ str_starts_with($row['change'], '-') ? 'value-down' : 'value-up' }}">
+											@if(str_starts_with($row['change'], '-'))
+												{{ number_format((float)str_replace(',', '', $row['change']), 0, ',', '.') }}
+											@else
+												+{{ number_format((float)str_replace(',', '', $row['change']), 0, ',', '.') }}
+											@endif
+										</td>
+										<td class="text-center">{{ number_format((float)str_replace(',', '', $row['open']), 0, ',', '.') }}</td>
+										<td class="text-center">{{ number_format((float)str_replace(',', '', $row['high']), 0, ',', '.') }}</td>
+										<td class="text-center">{{ number_format((float)str_replace(',', '', $row['low']), 0, ',', '.') }}</td>
+										<td class="text-center">{{ $row['volume'] }}</td>
+										<td class="text-center">{{ $row['price_earnings_ttm'] }}</td>
+										<td class="text-center">
 											@php $ar = $row['analystRating'] ?? null; @endphp
-											@if ($ar === 'Strong Buy')
+											@if ($ar === 'StrongBuy')
 												<span class="value-up">
 													<span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><path fill="currentColor" d="M9 3.3 13.7 8l-.7.7-4-4-4 4-.7-.7L9 3.3Zm0 6 4.7 4.7-.7.7-4-4-4 4-.7-.7L9 9.3Z"></path></svg></span>
 													Strong Buy
@@ -310,13 +300,23 @@
 													<span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><path fill="currentColor" d="m4.67 10.62.66.76L9 8.16l3.67 3.22.66-.76L9 6.84l-4.33 3.78Z"></path></svg></span>
 													Buy
 												</span>
+											@elseif ($ar === 'Sell')
+												<span class="value-down">
+													<span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><path fill="currentColor" d="m4.67 7.38.66-.76L9 9.84l3.67-3.22.66.76L9 11.16 4.67 7.38Z"></path></svg></span>
+													Sell
+												</span>
+											@elseif ($ar === 'StrongSell')
+												<span class="value-down">
+													<span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><path fill="currentColor" d="m5 3.3 4 4 4-4 .7.7L9 8.7 4.3 4l.7-.7Zm0 6 4 4 4-4 .7.7L9 14.7 4.3 10l.7-.7Z"></path></svg></span>
+													Strong Sell
+												</span>
 											@else
 												<span>{{ $ar }}</span>
 											@endif
 										</td>
 									</tr>
 									@empty
-									<tr><td colspan="5" class="text-center">No data</td></tr>
+									<tr><td colspan="9" class="text-center">No data</td></tr>
 									@endforelse
 								</tbody>
 							</table>
@@ -325,150 +325,46 @@
 					</div>
 				</div>
 			</div>
-
-			<div class="col-12 col-md-6">
-				<div class="card">
-					<div class="card-header d-flex align-items-center justify-content-between">
-						<div>
-							<span>Technical Ratings — Strong</span>
-							<br><small id="session-status-2">Session 2: Close</small>
-						</div>
-						<div class="d-flex align-items-center gap-2">
-							<small class="text-muted" id="countdown-timer-2">15:00</small>
-							<button class="btn btn-sm btn-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTechRatings" aria-expanded="true" aria-controls="collapseTechRatings">
-								<svg class="chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M11.354 10.354 8 7 4.646 10.354l-.708-.708L8 5.586l4.062 4.06-.708.708z"/></svg>
-							</button>
-						</div>
-					</div>
-					<div id="collapseTechRatings" class="collapse show">
-					<div class="card-body">
-						<div class="table-responsive">
-							<table class="table table-striped table-hover" id="tech-rating-table">
-								<thead>
-									<tr>
-										<th>Symbol</th>
-										<th>Tech</th>
-										<th>MAs</th>
-										<th>Osc</th>
-									</tr>
-								</thead>
-								<tbody>
-									@forelse ($stock_technical_analysis as $row)
-									<tr>
-										<td class="symbol-cell">
-											<img src="{{ $row['logo'] }}" alt="logo" class="logo" />
-											<span>{{ $row['name'] }}</span>
-											<small class="text-muted">{{ $row['description'] }}</small>
-										</td>
-										<td>
-											@php $tech = $row['techRating_1D']; @endphp
-											@if ($tech === 'Strong Buy')
-												<span class="value-up">
-													<span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><path fill="currentColor" d="M9 3.3 13.7 8l-.7.7-4-4-4 4-.7-.7L9 3.3Zm0 6 4.7 4.7-.7.7-4-4-4 4-.7-.7L9 9.3Z"></path></svg></span>
-													Strong Buy
-												</span>
-											@elseif ($tech === 'Buy')
-												<span class="value-up">
-													<span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><path fill="currentColor" d="m4.67 10.62.66.76L9 8.16l3.67 3.22.66-.76L9 6.84l-4.33 3.78Z"></path></svg></span>
-													Buy
-												</span>
-											@else
-												<span>{{ $tech }}</span>
-											@endif
-										</td>
-										<td>
-											@php $ma = $row['maRating_1D']; @endphp
-											@if ($ma === 'Strong Buy')
-												<span class="value-up">
-													<span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><path fill="currentColor" d="M9 3.3 13.7 8l-.7.7-4-4-4 4-.7-.7L9 3.3Zm0 6 4.7 4.7-.7.7-4-4-4 4-.7-.7L9 9.3Z"></path></svg></span>
-													Strong Buy
-												</span>
-											@elseif ($ma === 'Buy')
-												<span class="value-up">
-													<span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><path fill="currentColor" d="m4.67 10.62.66.76L9 8.16l3.67 3.22.66-.76L9 6.84l-4.33 3.78Z"></path></svg></span>
-													Buy
-												</span>
-											@else
-												<span>{{ $ma }}</span>
-											@endif
-										</td>
-										<td>
-											@php $osc = $row['osRating_1D']; @endphp
-											@if ($osc === 'Strong Buy')
-												<span class="value-up">
-													<span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><path fill="currentColor" d="M9 3.3 13.7 8l-.7.7-4-4-4 4-.7-.7L9 3.3Zm0 6 4.7 4.7-.7.7-4-4-4 4-.7-.7L9 9.3Z"></path></svg></span>
-													Strong Buy
-												</span>
-											@elseif ($osc === 'Buy')
-												<span class="value-up">
-													<span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><path fill="currentColor" d="m4.67 10.62.66.76L9 8.16l3.67 3.22.66-.76L9 6.84l-4.33 3.78Z"></path></svg></span>
-													Buy
-												</span>
-											@else
-												<span>{{ $osc }}</span>
-											@endif
-										</td>
-									</tr>
-									@empty
-									<tr><td colspan="4" class="text-center">No data</td></tr>
-									@endforelse
-								</tbody>
-							</table>
-						</div>
-					</div>
-					</div>
-				</div>
-			</div>
-
-	</div>
+		</div>
 
 	<script>
 		var isMob = {!! json_encode($isMob) !!};
-		var tvTable, trTable;
+		var stockTable;
 
 		var countdownInterval;
 		var timeRemaining = 15 * 60;
 
-		var topVolumeStocks = [];
-		var technicalAnalysisStocks = [];
+		var stockData = [];
+		var gainersData = [];
+		var mostActiveData = [];
 
 		function updateTables() {
 			$('#refresh-indicator').show();
 			
-			$('#top-volume-table').addClass('table-updating');
-			$('#tech-rating-table').addClass('table-updating');
+			$('#stock-table').addClass('table-updating');
 			
 			$.ajax({
 				url: '/api/stock-data',
 				method: 'GET',
 				dataType: 'json',
 				success: function(data) {
-					var tablesUpdated = 0;
-					var totalTables = 0;
-					
-					if (data.stock_top_volume_for_buy && tvTable) {
-						totalTables++;
-						updateTopVolumeTable(data.stock_top_volume_for_buy);
-						tablesUpdated++;
-					}
-					
-					if (data.stock_technical_analysis && trTable) {
-						totalTables++;
-						updateTechnicalAnalysisTable(data.stock_technical_analysis);
-						tablesUpdated++;
-					}
-					
-					if (tablesUpdated === totalTables && totalTables > 0) {
+					if (data.stock_price_to_earnings_ratio && stockTable) {
+						stockData = data.stock_price_to_earnings_ratio;
+						gainersData = data.stock_market_movers_gainers || [];
+						mostActiveData = data.stock_most_active || [];
+						
+						updateStockTable(stockData);
+						
 						setTimeout(function() {
 							highlightMatchingRows();
 						}, 300);
 					}
 					
-					$('#top-volume-table, #tech-rating-table').removeClass('table-updating');
-					$('#top-volume-table, #tech-rating-table').addClass('table-updated');
+					$('#stock-table').removeClass('table-updating');
+					$('#stock-table').addClass('table-updated');
 					
 					setTimeout(function() {
-						$('#top-volume-table, #tech-rating-table').removeClass('table-updated');
+						$('#stock-table').removeClass('table-updated');
 					}, 2000);
 					
 					$('#refresh-indicator').hide();
@@ -476,7 +372,7 @@
 					timeRemaining = 15 * 60;
 				},
 				error: function(xhr, status, error) {
-					$('#top-volume-table, #tech-rating-table').removeClass('table-updating');
+					$('#stock-table').removeClass('table-updating');
 					$('#refresh-indicator').hide();
 				}
 			});
@@ -487,7 +383,7 @@
 			var seconds = timeRemaining % 60;
 			var timeString = (minutes < 10 ? '0' : '') + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
 			
-			$('#countdown-timer-1, #countdown-timer-2').text(timeString);
+			$('#countdown-timer-1').text(timeString);
 			
 			if (timeRemaining <= 0) {
 				updateTables();
@@ -496,20 +392,40 @@
 			}
 		}
 
-		function getMatchingStocks() {
+		function getTopGainersMatches() {
 			var matches = [];
 			
-			if (topVolumeStocks.length === 0 || technicalAnalysisStocks.length === 0) {
+			if (stockData.length === 0 || gainersData.length === 0) {
 				return matches;
 			}
 			
-			topVolumeStocks.forEach(function(tvStock) {
-				var match = technicalAnalysisStocks.find(function(taStock) {
-					return taStock.name === tvStock.name;
+			stockData.forEach(function(stock) {
+				var match = gainersData.find(function(gainer) {
+					return gainer.symbol === stock.name;
 				});
 				
 				if (match) {
-					matches.push(tvStock.name);
+					matches.push(stock.name);
+				}
+			});
+			
+			return matches;
+		}
+
+		function getMostActiveMatches() {
+			var matches = [];
+			
+			if (stockData.length === 0 || mostActiveData.length === 0) {
+				return matches;
+			}
+			
+			stockData.forEach(function(stock) {
+				var match = mostActiveData.find(function(active) {
+					return active.symbol === stock.name;
+				});
+				
+				if (match) {
+					matches.push(stock.name);
 				}
 			});
 			
@@ -517,251 +433,95 @@
 		}
 
 		function highlightMatchingRows() {
-			$('#top-volume-table tbody tr, #tech-rating-table tbody tr').removeClass('stock-match-highlight');
+			$('#stock-table tbody tr').removeClass('stock-match-highlight');
 			$('.match-indicator').remove();
 			
-			var matchingStocks = getMatchingStocks();
+			var topGainersMatches = getTopGainersMatches();
+			var mostActiveMatches = getMostActiveMatches();
 			
-			if (matchingStocks.length > 0) {
-				matchingStocks.forEach(function(stockName) {
-					try {
-						if (tvTable && tvTable.rows) {
-							tvTable.rows().every(function(rowIdx, tableLoop, rowLoop) {
-								var data = this.data();
-								if (data && data[0]) {
-									var tempDiv = $('<div>').html(data[0]);
-									var rowStockName = tempDiv.find('span').first().text().trim();
-									
-									if (rowStockName === stockName) {
-										var node = this.node();
-										$(node).addClass('stock-match-highlight');
-										var symbolCell = $(node).find('.symbol-cell').first();
-										if (symbolCell.find('.match-indicator').length === 0) {
-											symbolCell.append('<span class="match-indicator">MATCH</span>');
-										}
-									}
-								}
-							});
+			if (stockTable && stockTable.rows) {
+				stockTable.rows().every(function(rowIdx, tableLoop, rowLoop) {
+					var data = this.data();
+					if (data && data[0]) {
+						var tempDiv = $('<div>').html(data[0]);
+						var rowStockName = tempDiv.find('span').first().text().trim();
+						var node = this.node();
+						var symbolCell = $(node).find('.symbol-cell').first();
+						
+						if (topGainersMatches.includes(rowStockName)) {
+							$(node).addClass('stock-match-highlight');
+							if (symbolCell.find('.match-indicator').length === 0) {
+								symbolCell.append('<span class="match-indicator" style="background-color: #28a745; color: white;">Top Gainers</span>');
+							}
 						}
 						
-						if (trTable && trTable.rows) {
-							trTable.rows().every(function(rowIdx, tableLoop, rowLoop) {
-								var data = this.data();
-								if (data && data[0]) {
-									var tempDiv = $('<div>').html(data[0]);
-									var rowStockName = tempDiv.find('span').first().text().trim();
-									
-									if (rowStockName === stockName) {
-										var node = this.node();
-										$(node).addClass('stock-match-highlight');
-										var symbolCell = $(node).find('.symbol-cell').first();
-										if (symbolCell.find('.match-indicator').length === 0) {
-											symbolCell.append('<span class="match-indicator">MATCH</span>');
-										}
-									}
-								}
-							});
+						if (mostActiveMatches.includes(rowStockName)) {
+							$(node).addClass('stock-match-highlight');
+							if (symbolCell.find('.match-indicator').length === 0) {
+								symbolCell.append('<span class="match-indicator" style="background-color: #007bff; color: white;">Most Active</span>');
+							} else {
+								symbolCell.append('<span class="match-indicator" style="background-color: #007bff; color: white; margin-left: 4px;">Most Active</span>');
+							}
 						}
-					} catch (e) {
-						$('#top-volume-table tbody tr').each(function() {
-							var rowStockName = $(this).find('.symbol-cell span').first().text().trim();
-							if (rowStockName === stockName) {
-								$(this).addClass('stock-match-highlight');
-								var symbolCell = $(this).find('.symbol-cell').first();
-								if (symbolCell.find('.match-indicator').length === 0) {
-									symbolCell.append('<span class="match-indicator">MATCH</span>');
-								}
-							}
-						});
-						
-						$('#tech-rating-table tbody tr').each(function() {
-							var rowStockName = $(this).find('.symbol-cell span').first().text().trim();
-							if (rowStockName === stockName) {
-								$(this).addClass('stock-match-highlight');
-								var symbolCell = $(this).find('.symbol-cell').first();
-								if (symbolCell.find('.match-indicator').length === 0) {
-									symbolCell.append('<span class="match-indicator">MATCH</span>');
-								}
-							}
-						});
 					}
 				});
 			}
 		}
 
-		function updateTopVolumeTable(data) {
-			tvTable.clear();
-			topVolumeStocks = data;
+		function formatNumber(number) {
+			if (number === null || number === undefined || number === '') {
+				return number;
+			}
+			let numStr = number.toString().replace(/[^\d.-]/g, '');
+			let num = parseFloat(numStr);
+			if (isNaN(num)) {
+				return number;
+			}
+			return num.toLocaleString('id-ID').replace(/,/g, '.');
+		}
+
+		function updateStockTable(data) {
+			stockTable.clear();
+			stockData = data;
 			
 			data.forEach(function(row) {
-				var changeClass = row.change.startsWith('+') ? 'value-up' : 'value-down';
+				var changeClass = row.change.startsWith('-') ? 'value-down' : 'value-up';
+				var changeDisplay = row.change.startsWith('-') ? formatNumber(row.change) : '+' + formatNumber(row.change);
 				var analystRatingHtml = getAnalystRatingHtml(row.analystRating);
 				
-				tvTable.row.add([
+				stockTable.row.add([
 					'<div class="symbol-cell"><img src="' + row.logo + '" alt="logo" class="logo" /><span>' + row.name + '</span><small class="text-muted">' + row.description + '</small></div>',
-					number_format(row.close) + ' <small class="text-muted">' + row.currency + '</small>',
-					'<span class="' + changeClass + '">' + row.change + '</span>',
-					row.value,
+					formatNumber(row.price) + ' <small class="text-muted">' + row.currency + '</small>',
+					'<span class="' + changeClass + '">' + changeDisplay + '</span>',
+					formatNumber(row.open) + ' <small class="text-muted">' + row.currency + '</small>',
+					formatNumber(row.high) + ' <small class="text-muted">' + row.currency + '</small>',
+					formatNumber(row.low) + ' <small class="text-muted">' + row.currency + '</small>',
+					row.volume,
+					row.price_earnings_ttm,
 					analystRatingHtml
 				]);
 			});
 			
-			tvTable.draw();
-		}
-
-		function updateTopVolumeTableAsync(data) {
-			return new Promise(function(resolve) {
-				tvTable.clear();
-				topVolumeStocks = data;
-				
-				data.forEach(function(row) {
-					var changeClass = row.change.startsWith('+') ? 'value-up' : 'value-down';
-					var analystRatingHtml = getAnalystRatingHtml(row.analystRating);
-					
-					tvTable.row.add([
-						'<div class="symbol-cell"><img src="' + row.logo + '" alt="logo" class="logo" /><span>' + row.name + '</span><small class="text-muted">' + row.description + '</small></div>',
-						number_format(row.close) + ' <small class="text-muted">' + row.currency + '</small>',
-						'<span class="' + changeClass + '">' + row.change + '</span>',
-						row.value,
-						analystRatingHtml
-					]);
-				});
-				
-				tvTable.draw();
-				
-				setTimeout(function() {
-					resolve();
-				}, 100);
-			});
-		}
-
-		function updateTechnicalAnalysisTable(data) {
-			trTable.clear();
-			technicalAnalysisStocks = data;
-			
-			data.forEach(function(row) {
-				var techHtml = getTechnicalRatingHtml(row.techRating_1D);
-				var maHtml = getTechnicalRatingHtml(row.maRating_1D);
-				var oscHtml = getTechnicalRatingHtml(row.osRating_1D);
-				
-				trTable.row.add([
-					'<div class="symbol-cell"><img src="' + row.logo + '" alt="logo" class="logo" /><span>' + row.name + '</span><small class="text-muted">' + row.description + '</small></div>',
-					techHtml,
-					maHtml,
-					oscHtml
-				]);
-			});
-			
-			trTable.draw();
-		}
-
-		function updateTechnicalAnalysisTableAsync(data) {
-			return new Promise(function(resolve) {
-				trTable.clear();
-				technicalAnalysisStocks = data;
-				
-				data.forEach(function(row) {
-					var techHtml = getTechnicalRatingHtml(row.techRating_1D);
-					var maHtml = getTechnicalRatingHtml(row.maRating_1D);
-					var oscHtml = getTechnicalRatingHtml(row.osRating_1D);
-					
-					trTable.row.add([
-						'<div class="symbol-cell"><img src="' + row.logo + '" alt="logo" class="logo" /><span>' + row.name + '</span><small class="text-muted">' + row.description + '</small></div>',
-						techHtml,
-						maHtml,
-						oscHtml
-					]);
-				});
-				
-				trTable.draw();
-				
-				setTimeout(function() {
-					resolve();
-				}, 100);
-			});
+			stockTable.draw();
 		}
 
 		function getAnalystRatingHtml(rating) {
-			if (rating === 'Strong Buy') {
+			if (rating === 'StrongBuy') {
 				return '<span class="value-up"><span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><path fill="currentColor" d="M9 3.3 13.7 8l-.7.7-4-4-4 4-.7-.7L9 3.3Zm0 6 4.7 4.7-.7.7-4-4-4 4-.7-.7L9 9.3Z"></path></svg></span>Strong Buy</span>';
 			} else if (rating === 'Buy') {
 				return '<span class="value-up"><span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><path fill="currentColor" d="m4.67 10.62.66.76L9 8.16l3.67 3.22.66-.76L9 6.84l-4.33 3.78Z"></path></svg></span>Buy</span>';
+			} else if (rating === 'Sell') {
+				return '<span class="value-down"><span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><path fill="currentColor" d="m4.67 7.38.66-.76L9 9.84l3.67-3.22.66.76L9 11.16 4.67 7.38Z"></path></svg></span>Sell</span>';
+			} else if (rating === 'StrongSell') {
+				return '<span class="value-down"><span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><path fill="currentColor" d="m5 3.3 4 4 4-4 .7.7L9 8.7 4.3 4l.7-.7Zm0 6 4 4 4-4 .7.7L9 14.7 4.3 10l.7-.7Z"></path></svg></span>Strong Sell</span>';
 			}
 			return '<span>' + rating + '</span>';
-		}
-
-		function getTechnicalRatingHtml(rating) {
-			if (rating === 'Strong Buy') {
-				return '<span class="value-up"><span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><path fill="currentColor" d="M9 3.3 13.7 8l-.7.7-4-4-4 4-.7-.7L9 3.3Zm0 6 4.7 4.7-.7.7-4-4-4 4-.7-.7L9 9.3Z"></path></svg></span>Strong Buy</span>';
-			} else if (rating === 'Buy') {
-				return '<span class="value-up"><span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><path fill="currentColor" d="m4.67 10.62.66.76L9 8.16l3.67 3.22.66-.76L9 6.84l-4.33 3.78Z"></path></svg></span>Buy</span>';
-			}
-			return '<span>' + rating + '</span>';
-		}
-
-		function number_format(number) {
-			return parseFloat(number).toLocaleString('id-ID');
-		}
-
-		function updateMarketSessions() {
-			var jakartaTime = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Jakarta"}));
-			var day = jakartaTime.getDay();
-			var hours = jakartaTime.getHours();
-			var minutes = jakartaTime.getMinutes();
-			var currentTime = hours * 100 + minutes;
-
-			var session2Status = '';
-			var session2Class = '';
-
-			if (day >= 1 && day <= 5) {
-				if (day >= 1 && day <= 4) {
-					if (currentTime >= 900 && currentTime < 1200) {
-						session2Status = 'Session 2: Close';
-						session2Class = 'value-down';
-					} else if (currentTime >= 1200 && currentTime < 1330) {
-						session2Status = 'Session 2: Break';
-						session2Class = 'text-warning';
-					} else if (currentTime >= 1330 && currentTime < 1630) {
-						session2Status = 'Session 2: Open';
-						session2Class = 'value-up';
-					} else {
-						session2Status = 'Session 2: Close';
-						session2Class = 'value-down';
-					}
-				} else if (day === 5) {
-					if (currentTime >= 900 && currentTime < 1130) {
-						session2Status = 'Session 2: Close';
-						session2Class = 'value-down';
-					} else if (currentTime >= 1130 && currentTime < 1400) {
-						session2Status = 'Session 2: Break';
-						session2Class = 'text-warning';
-					} else if (currentTime >= 1400 && currentTime < 1630) {
-						session2Status = 'Session 2: Open';
-						session2Class = 'value-up';
-					} else {
-						session2Status = 'Session 2: Close';
-						session2Class = 'value-down';
-					}
-				}
-			} else {
-				session2Status = 'Session 2: Close';
-				session2Class = 'value-down';
-			}
-
-			var sessionEl1 = document.getElementById('session-status-1');
-			var sessionEl2 = document.getElementById('session-status-2');
-			
-			sessionEl1.textContent = session2Status;
-			sessionEl1.className = session2Class;
-			
-			sessionEl2.textContent = session2Status;
-			sessionEl2.className = session2Class;
 		}
 
 		if (isMob == false) {
 			function showTime() {
-				var months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September','Oktober', 'November', 'Desember'];
-				var myDays = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+				var months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September','October', 'November', 'December'];
+				var myDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 				
 				var jakartaDate = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Jakarta"}));
 				var day = jakartaDate.getDate();
@@ -777,9 +537,53 @@
 				curr_minute = checkTime(curr_minute);
 				curr_second = checkTime(curr_second);
 				document.getElementById('clock').innerHTML = thisDay + ', ' + day + ' ' + months[month] + ' ' + year + ' | ' + curr_hour + ":" + curr_minute + ":" + curr_second + ' (Asia/Jakarta)';
+				
+				updateTradingSession(jakartaDate);
 			}
 			function checkTime(i) { if (i < 10) i = "0" + i; return i; }
 			setInterval(showTime, 500);
+		} else {
+			function updateMobileTradingSession() {
+				var jakartaDate = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Jakarta"}));
+				updateTradingSession(jakartaDate);
+			}
+			setInterval(updateMobileTradingSession, 30000);
+			updateMobileTradingSession();
+		}
+
+		function updateTradingSession(jakartaDate) {
+			var dayOfWeek = jakartaDate.getDay();
+			var hour = jakartaDate.getHours();
+			var minute = jakartaDate.getMinutes();
+			var currentTime = hour * 100 + minute;
+			
+			var sessionElement = document.getElementById('trading-session');
+			
+			if (dayOfWeek === 0 || dayOfWeek === 6) {
+				sessionElement.innerHTML = '📅 Weekend - Market Closed';
+				sessionElement.className = 'badge badge-session-closed';
+				return;
+			}
+			
+			var isFriday = (dayOfWeek === 5);
+			var session1Start = 900;
+			var session1End = isFriday ? 1130 : 1200;
+			var session2Start = isFriday ? 1400 : 1330;
+			var session2End = 1630;
+			
+			if (currentTime >= session1Start && currentTime < session1End) {
+				sessionElement.innerHTML = '🟢 Session I - Market Open (' + (isFriday ? '09:00-11:30' : '09:00-12:00') + ')';
+				sessionElement.className = 'badge badge-session-active';
+			} else if (currentTime >= session1End && currentTime < session2Start) {
+				sessionElement.innerHTML = '⏸️ Lunch Break (' + (isFriday ? '11:30-14:00' : '12:00-13:30') + ')';
+				sessionElement.className = 'badge badge-session-break';
+			} else if (currentTime >= session2Start && currentTime < session2End) {
+				sessionElement.innerHTML = '🟢 Session II - Market Open (' + (isFriday ? '14:00-16:30' : '13:30-16:30') + ')';
+				sessionElement.className = 'badge badge-session-active';
+			} else {
+				sessionElement.innerHTML = '🔴 Market Closed';
+				sessionElement.className = 'badge badge-session-closed';
+			}
 		}
 
 		$(document).ready(function() {
@@ -789,27 +593,7 @@
 				}
 			});
 
-			tvTable = $('#top-volume-table').DataTable({
-				"pageLength": 50,
-				"lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-				"order": [],
-				"columnDefs": [
-					{ "orderable": false, "targets": 0 }
-				],
-				"language": {
-					"search": "Search:",
-					"lengthMenu": "Show _MENU_ entries",
-					"info": "Showing _START_ to _END_ of _TOTAL_ entries",
-					"paginate": {
-						"first": "First",
-						"last": "Last",
-						"next": "Next",
-						"previous": "Previous"
-					}
-				}
-			});
-
-			trTable = $('#tech-rating-table').DataTable({
+			stockTable = $('#stock-table').DataTable({
 				"pageLength": 50,
 				"lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
 				"order": [],
@@ -832,36 +616,29 @@
 			var collapseEls = document.querySelectorAll('.collapse');
 			collapseEls.forEach(function(el){
 				el.addEventListener('shown.bs.collapse', function(e){
-					if (e.target && e.target.id === 'collapseTopVolume') {
-						tvTable.columns.adjust();
-					}
-					if (e.target && e.target.id === 'collapseTechRatings') {
-						trTable.columns.adjust();
+					if (e.target && e.target.id === 'collapseStockTable') {
+						stockTable.columns.adjust();
 					}
 				});
 			});
 
-			@if(isset($stock_top_volume_for_buy) && isset($stock_technical_analysis))
-				topVolumeStocks = {!! json_encode($stock_top_volume_for_buy) !!};
-				technicalAnalysisStocks = {!! json_encode($stock_technical_analysis) !!};
+			@if(isset($stock_price_to_earnings_ratio) && isset($stock_market_movers_gainers) && isset($stock_most_active))
+				stockData = {!! json_encode($stock_price_to_earnings_ratio) !!};
+				gainersData = {!! json_encode($stock_market_movers_gainers) !!};
+				mostActiveData = {!! json_encode($stock_most_active) !!};
 				
-				var checkTables = function() {
-					if (tvTable && trTable && 
-						$('#top-volume-table tbody tr').length > 0 && 
-						$('#tech-rating-table tbody tr').length > 0) {
+				var checkTable = function() {
+					if (stockTable && $('#stock-table tbody tr').length > 0) {
 						highlightMatchingRows();
 					} else {
-						setTimeout(checkTables, 200);
+						setTimeout(checkTable, 200);
 					}
 				};
 				
-				setTimeout(checkTables, 500);
+				setTimeout(checkTable, 500);
 			@endif
 
 			setInterval(updateTables, 900000);
-
-			updateMarketSessions();
-			setInterval(updateMarketSessions, 1000);
 
 			updateCountdown();
 			countdownInterval = setInterval(updateCountdown, 1000);

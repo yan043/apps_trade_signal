@@ -1,113 +1,94 @@
 <h1 align="center">Signal Stock Indonesia & Crypto – Dashboard</h1>
 
-Dashboard ringan untuk memantau saham Indonesia dan crypto dengan data dari TradingView. Halaman utama menampilkan dua tabel: Top Volume (kandidat beli) dan Technical Ratings (Strong). Data diperbarui otomatis tiap 15 menit tanpa reload halaman dengan live market session tracking.
+Lightweight dashboard for monitoring Indonesian stocks and crypto with data from TradingView. The main page displays a single comprehensive table with stock market data including Price to Earnings ratios. Data updates automatically every 15 minutes without page reload with live market session tracking.
 
-## Fitur Utama
+## Key Features
 
-- **Top Volume — Buy Candidates** (filter: AnalystRating Buy/Strong Buy)
-- **Technical Ratings — Strong** (kombinasi Tech/MAs/Osc Strong Buy/Buy)
-- **Market Session Indicator** - Real-time status perdagangan IDX dengan warna (Open: hijau, Close: merah, Break: kuning)
-- **Asia/Jakarta Timezone** - Semua waktu menggunakan zona waktu Indonesia secara konsisten
-- **Auto-refresh 15 menit** dengan countdown timer real-time di header card
-- **Tabel interaktif** (DataTables: search, sort, pagination) tanpa kehilangan state
-- **Match Indicator** - Highlighting otomatis untuk stocks yang muncul di kedua tabel
-- **Collapsible Cards** - Toggle show/hide untuk setiap tabel dengan animasi chevron
-- **Responsive Design** - Optimized untuk desktop dan mobile
-- **Visual Feedback** - Loading states dan update animations
-- **Watermark diagonal** ala Word (non-intrusif, tidak mengganggu klik)
+- **Stock Market - Price to Earnings** (filter: P/E ratio > 25, AnalystRating: StrongSell/Sell/Buy/StrongBuy)
+- **Market Session Indicator** - Real-time IDX trading status with colors (Open: green, Closed: red, Break: yellow)
+- **Asia/Jakarta Timezone** - All times use Indonesian timezone consistently  
+- **Auto-refresh 15 minutes** with real-time countdown timer in card header
+- **Interactive table** (DataTables: search, sort, pagination) without losing state
+- **Match Indicator** - Automatic highlighting for stocks appearing in both Top Gainers and Most Active
+- **Collapsible Cards** - Toggle show/hide for table with chevron animation
+- **Responsive Design** - Optimized for desktop and mobile
+- **Visual Feedback** - Loading states and update animations
+- **Diagonal watermark** Word-style (non-intrusive, doesn't interfere with clicks)
+- **Indonesian Number Formatting** - Displays numbers with dot separators (3890 → 3.890)
+- **Plus Signs for Positive Changes** - Shows + prefix for positive price changes
 
-## Arsitektur & Alur Data
+## Architecture & Data Flow
 
 - Route: `GET /` → `DashboardController@index`
-	- Memanggil dua method privat untuk ambil data awal:
-		- `stock_top_volume_for_buy()` → memanggil TradingView Scanner market "indonesia" (POST scan) dan memfilter baris dengan `AnalystRating` ∈ {Buy, StrongBuy}. Data diolah: logo, name, description, close, currency, change, value, analystRating.
-		- `stock_technical_analysis()` → memanggil TradingView Scanner dengan kolom TechRating/MARating/OsRating. Disaring pada kombinasi sinyal kuat (StrongBuy/Buy) dan diubah ke label yang ramah (Strong Buy/Buy).
+	- Calls private method to fetch initial data:
+		- `stock_price_to_earnings_ratio()` → calls TradingView Scanner market "indonesia" (POST scan) and filters rows with `price_earnings_ttm` > 25 and `AnalystRating` ∈ {StrongSell, Sell, Buy, StrongBuy}. Data processed: logo, name, description, price, currency, change, open, high, low, volume, price_earnings_ttm, analystRating.
 - API: `GET /api/stock-data` → `ApiController@getStockData`
-	- Mengembalikan JSON: `stock_top_volume_for_buy`, `stock_technical_analysis`, `last_updated`.
+	- Returns JSON: `stock_price_to_earnings_ratio`, `stock_market_movers_gainers`, `stock_most_active`, `last_updated`.
 - View: `resources/views/dashboard.blade.php`
-	- **Market Session Tracking**: Live monitoring status perdagangan IDX (Session 2) dengan timezone Asia/Jakarta
-	- **Real-time Clock**: Waktu Indonesia dengan format lengkap di header dashboard
+	- **Market Session Tracking**: Live monitoring of IDX trading status with Asia/Jakarta timezone
+	- **Real-time Clock**: Indonesian time with full format in dashboard header
 	- **Color-coded Sessions**: 
-		- 🟢 Session 2: Open (hijau) - saat pasar sedang aktif
-		- 🔴 Session 2: Close (merah) - saat pasar tutup atau di luar jam trading
-		- 🟡 Session 2: Break (kuning) - saat istirahat siang
-	- **Dua tabel DataTables** dengan fitur lengkap: search, sort, pagination
-	- **Auto-refresh** via AJAX ke `/api/stock-data` setiap 15 menit
-	- **Match Detection System**: Otomatis mendeteksi dan highlight stocks yang muncul di kedua tabel
+		- 🟢 Session I/II: Market Open (green) - when market is active
+		- 🔴 Market Closed (red) - when market is closed or outside trading hours
+		- ⏸️ Lunch Break (yellow) - during lunch break
+		- 📅 Weekend - Market Closed (red) - during weekends
+	- **Single DataTables table** with complete features: search, sort, pagination
+	- **Auto-refresh** via AJAX to `/api/stock-data` every 15 minutes
+	- **Match Detection System**: Automatically detects and highlights stocks appearing in both Top Gainers and Most Active
 	- **Visual Effects**: 
-		- Loading states dengan opacity transition saat updating
-		- Success flash dengan background hijau setelah update
-		- Yellow highlight untuk matching stocks
-		- Golden badge "★ MATCH" untuk stocks yang cocok
-	- **Countdown Timer**: Real-time countdown (15:00 → 00:00) di header setiap card
-	- **Collapsible Interface**: Toggle show/hide tabel dengan chevron rotation animation
-	- **Responsive Layout**: Bootstrap grid system untuk mobile/desktop
-	- **Error Handling**: Fallback methods untuk DataTable operations
-	- **Proteksi CSRF**: Meta token untuk semua AJAX requests
-	- **Watermark**: "Data Powered by TradingView" dan "Github @yan043"
+		- Loading states with opacity transition when updating
+		- Success flash with green background after update
+		- Yellow highlight for matching stocks
+		- Colored badges "Top Gainers" and "Most Active" for matching stocks
+	- **Countdown Timer**: Real-time countdown (15:00 → 00:00) in card header
+	- **Collapsible Interface**: Toggle show/hide table with chevron rotation animation
+	- **Responsive Layout**: Bootstrap grid system for mobile/desktop
+	- **Error Handling**: Fallback methods for DataTable operations
+	- **CSRF Protection**: Meta token for all AJAX requests
+	- **Watermark**: "Data Powered by TradingView" and "Github @yan043"
+	- **Number Formatting**: Indonesian format with dot separators and plus signs for positive changes
 
-## Sumber Data (TradingView Scanner)
+## Data Source (TradingView Scanner)
 
-Aplikasi melakukan HTTP POST ke endpoint TradingView Scanner:
+The application makes HTTP POST requests to TradingView Scanner endpoint:
 
-- `https://scanner.tradingview.com/indonesia/scan?label-product=markets-screener`
+- `https://scanner.tradingview.com/indonesia/scan?label-product=screener-stock`
 
-Payload berisi daftar kolom yang dibutuhkan dan pengurutan, lalu hasil dipilah/di-format di server sebelum dikirim ke klien. Nilai seperti `StrongBuy` diubah menjadi label "Strong Buy" agar konsisten di UI.
+Payload contains the list of required columns and sorting, then results are filtered/formatted on the server before being sent to the client. Values like `StrongBuy` are kept as-is for consistency in the UI.
 
-## Cara Menjalankan (Windows/PowerShell)
+## How to Run (Windows/PowerShell)
 
-1. Pastikan PHP dan Composer sudah terpasang (repo ini sudah vendor-ready).
-2. Jalankan server pengembangan Laravel:
+1. Ensure PHP and Composer are installed (this repo is vendor-ready).
+2. Run the Laravel development server:
 
 	 ```powershell
 	 php artisan serve
 	 ```
 
-3. Buka browser ke alamat yang ditampilkan (default: http://127.0.0.1:8000).
+3. Open browser to the displayed address (default: http://127.0.0.1:8000).
 
-Catatan: Aplikasi memuat CSS/JS DataTables dan Bootstrap dari CDN.
+Note: The application loads DataTables and Bootstrap CSS/JS from CDN.
 
-## Jadwal Market Session IDX
+## IDX Market Session Schedule
 
-Dashboard menampilkan status perdagangan real-time berdasarkan jadwal resmi IDX:
+Dashboard displays real-time trading status based on official IDX schedule:
 
-**Senin - Kamis:**
-- Session 2: 13:30 - 16:30 (Open - hijau)
-- Break: 12:00 - 13:30 (Break - kuning)  
-- Outside hours: (Close - merah)
+**Monday - Thursday:**
+- Session I: 09:00 - 12:00 (Market Open - green)
+- Lunch Break: 12:00 - 13:30 (Break - yellow)  
+- Session II: 13:30 - 16:30 (Market Open - green)
+- Outside hours: (Market Closed - red)
 
-**Jumat:**
-- Session 2: 14:00 - 16:30 (Open - hijau)
-- Break: 11:30 - 14:00 (Break - kuning)
-- Outside hours: (Close - merah)
+**Friday:**
+- Session I: 09:00 - 11:30 (Market Open - green)
+- Lunch Break: 11:30 - 14:00 (Break - yellow)
+- Session II: 14:00 - 16:30 (Market Open - green)
+- Outside hours: (Market Closed - red)
 
-**Sabtu - Minggu:**
-- Weekend (Close - merah)
+**Saturday - Sunday:**
+- Weekend - Market Closed (red)
 
-## Kustomisasi Singkat
-
-- **Market session timing**: ubah jam trading di function `updateMarketSessions()` 
-- **Interval refresh**: ubah di `dashboard.blade.php` (nilai `timeRemaining = 15 * 60;`)
-- **Session colors**: sesuaikan class `.value-up` (hijau), `.value-down` (merah), `.text-warning` (kuning)
-- **Countdown/tampilan**: CSS ada di `<style>` pada `dashboard.blade.php`
-- **Match indicator styling**: sesuaikan class `.match-indicator` dan `.stock-match-highlight` di CSS
-- **Filter logika sinyal**: sesuaikan di `DashboardController` dan/atau `ApiController` pada kondisi filtering array `$item['d'][idx]`
-- **Timezone settings**: ubah "Asia/Jakarta" di function `updateMarketSessions()` dan `showTime()`
-- **Collapsible behavior**: modify Bootstrap collapse classes di HTML dan JavaScript event listeners
-- **Loading animations**: customize `.table-updating` dan `.table-updated` CSS classes
-- **Route/API**: `routes/web.php`
-
-## Fitur Match Detection
-
-Sistem otomatis yang mendeteksi stocks yang muncul di kedua tabel:
-
-- **Real-time Detection**: Berjalan setiap kali data di-refresh atau halaman dimuat
-- **Visual Highlighting**: Background kuning dengan border kiri emas
-- **Match Badge**: Icon bintang dengan label "MATCH" 
-- **Cross-table Sync**: Highlight muncul simultan di kedua tabel
-- **Error Resilient**: Fallback method jika DataTable API gagal
-
-## Kredit
+## Credits
 
 - **Data Powered by TradingView**
 - **Created by Mahdian (@yan043)**

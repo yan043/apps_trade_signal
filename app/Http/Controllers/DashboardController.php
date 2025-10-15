@@ -7,10 +7,8 @@ class DashboardController extends Controller
     public function index()
     {
         $stock_price_to_earnings_ratio = self::stock_price_to_earnings_ratio();
-
-        $stock_market_movers_gainers  = self::stock_market_movers_gainers();
-
-        $stock_most_active  = self::stock_most_active();
+        $stock_market_movers_gainers = self::stock_market_movers_gainers();
+        $stock_most_active = self::stock_most_active();
 
         return view('dashboard', compact('stock_price_to_earnings_ratio', 'stock_market_movers_gainers', 'stock_most_active'));
     }
