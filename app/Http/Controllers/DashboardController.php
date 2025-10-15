@@ -6,61 +6,122 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $stock_top_volume_for_buy = self::stock_top_volume_for_buy();
+        $stock_price_to_earnings_ratio = self::stock_price_to_earnings_ratio();
 
-        $stock_technical_analysis  = self::stock_technical_analysis();
+        $stock_market_movers_gainers  = self::stock_market_movers_gainers();
 
-        return view('dashboard', compact('stock_top_volume_for_buy', 'stock_technical_analysis'));
+        $stock_most_active  = self::stock_most_active();
+
+        return view('dashboard', compact('stock_price_to_earnings_ratio', 'stock_market_movers_gainers', 'stock_most_active'));
     }
 
-    private function stock_top_volume_for_buy()
+    private function stock_price_to_earnings_ratio()
     {
         $results = [];
 
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://scanner.tradingview.com/indonesia/scan?label-product=markets-screener',
+            CURLOPT_URL => 'https://scanner.tradingview.com/indonesia/scan?label-product=screener-stock',
             CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HEADER => false,
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS => '{
-                "columns": [
-                    "name",
-                    "description",
-                    "logoid",
-                    "update_mode",
-                    "type",
-                    "typespecs",
-                    "close",
-                    "pricescale",
-                    "minmov",
-                    "fractional",
-                    "minmove2",
-                    "currency",
-                    "change",
-                    "volume",
-                    "relative_volume_10d_calc",
-                    "market_cap_basic",
-                    "fundamental_currency_code",
-                    "price_earnings_ttm",
-                    "earnings_per_share_diluted_ttm",
-                    "earnings_per_share_diluted_yoy_growth_ttm",
-                    "dividends_yield_current",
-                    "sector.tr",
-                    "market",
-                    "sector",
-                    "AnalystRating",
-                    "AnalystRating.tr"
-                ],
-                "ignore_unknown_fields": false,
-                "options": { "lang": "id_ID" },
-                "range": [0, 10],
-                "sort": { "sortBy": "volume", "sortOrder": "desc" },
-                "preset": "all_stocks"
-            }',
+            "columns": [
+                "name",
+                "description",
+                "logoid",
+                "update_mode",
+                "type",
+                "typespecs",
+                "close",
+                "pricescale",
+                "minmov",
+                "fractional",
+                "minmove2",
+                "currency",
+                "change_abs",
+                "open",
+                "high",
+                "low",
+                "volume",
+                "price_earnings_ttm",
+                "AnalystRating",
+                "AnalystRating.tr",
+                "exchange"
+            ],
+            "filter": [
+                { "left": "price_earnings_ttm", "operation": "egreater", "right": 25 },
+                { "left": "AnalystRating", "operation": "in_range", "right": ["StrongSell", "Sell", "StrongBuy", "Buy"] },
+                { "left": "is_primary", "operation": "equal", "right": true }
+            ],
+            "ignore_unknown_fields": false,
+            "options": { "lang": "en" },
+            "range": [0, 100],
+            "sort": { "sortBy": "market_cap_basic", "sortOrder": "desc" },
+            "symbols": {},
+            "markets": ["indonesia"],
+            "filter2": {
+                "operator": "and",
+                "operands": [
+                    {
+                        "operation": {
+                            "operator": "or",
+                            "operands": [
+                                {
+                                    "operation": {
+                                        "operator": "and",
+                                        "operands": [
+                                            { "expression": { "left": "type", "operation": "equal", "right": "stock" } },
+                                            { "expression": { "left": "typespecs", "operation": "has", "right": ["common"] } }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "operation": {
+                                        "operator": "and",
+                                        "operands": [
+                                            { "expression": { "left": "type", "operation": "equal", "right": "stock" } },
+                                            {
+                                                "expression": {
+                                                    "left": "typespecs",
+                                                    "operation": "has",
+                                                    "right": ["preferred"]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "operation": {
+                                        "operator": "and",
+                                        "operands": [{ "expression": { "left": "type", "operation": "equal", "right": "dr" } }]
+                                    }
+                                },
+                                {
+                                    "operation": {
+                                        "operator": "and",
+                                        "operands": [
+                                            { "expression": { "left": "type", "operation": "equal", "right": "fund" } },
+                                            {
+                                                "expression": {
+                                                    "left": "typespecs",
+                                                    "operation": "has_none_of",
+                                                    "right": ["etf"]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    { "expression": { "left": "typespecs", "operation": "has_none_of", "right": ["pre-ipo"] } }
+                ]
+            }
+        }',
             CURLOPT_HTTPHEADER => array(
                 'Content-Type: application/json'
             ),
@@ -70,308 +131,204 @@ class DashboardController extends Controller
 
         curl_close($curl);
 
-        $result = json_decode($response, true);
+        $data = json_decode($response, true);
 
-        if ($result && isset($result['totalCount']))
+        foreach ($data['data'] as $item)
         {
-            if ($result['totalCount'] > 0)
+            $logo = 'https://s3-symbol-logo.tradingview.com/' . $item['d'][2] . '.svg';
+
+            $name = $item['d'][0];
+
+            $description = $item['d'][1];
+
+            $price = rtrim(rtrim(number_format($item['d'][6], 2, '.', ''), '0'), '.');
+
+            $currency = $item['d'][11];
+
+            $change = rtrim(rtrim(number_format($item['d'][12], 2, '.', ''), '0'), '.');
+
+            $open = rtrim(rtrim(number_format($item['d'][13], 2, '.', ''), '0'), '.');
+
+            $high = rtrim(rtrim(number_format($item['d'][14], 2, '.', ''), '0'), '.');
+
+            $low = rtrim(rtrim(number_format($item['d'][15], 2, '.', ''), '0'), '.');
+
+            if ($item['d'][16] >= 1000000000000)
             {
-                $curl = curl_init();
-
-                curl_setopt_array($curl, array(
-                    CURLOPT_URL => 'https://scanner.tradingview.com/indonesia/scan?label-product=markets-screener',
-                    CURLOPT_SSL_VERIFYHOST => false,
-                    CURLOPT_SSL_VERIFYPEER => false,
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_HEADER => false,
-                    CURLOPT_CUSTOMREQUEST => 'POST',
-                    CURLOPT_POSTFIELDS => '{
-                        "columns": [
-                            "name",
-                            "description",
-                            "logoid",
-                            "update_mode",
-                            "type",
-                            "typespecs",
-                            "close",
-                            "pricescale",
-                            "minmov",
-                            "fractional",
-                            "minmove2",
-                            "currency",
-                            "change",
-                            "volume",
-                            "relative_volume_10d_calc",
-                            "market_cap_basic",
-                            "fundamental_currency_code",
-                            "price_earnings_ttm",
-                            "earnings_per_share_diluted_ttm",
-                            "earnings_per_share_diluted_yoy_growth_ttm",
-                            "dividends_yield_current",
-                            "sector.tr",
-                            "market",
-                            "sector",
-                            "AnalystRating",
-                            "AnalystRating.tr"
-                        ],
-                        "ignore_unknown_fields": false,
-                        "options": { "lang": "id_ID" },
-                        "range": [0, ' . $result['totalCount'] . '],
-                        "sort": { "sortBy": "volume", "sortOrder": "desc" },
-                        "preset": "all_stocks"
-                    }',
-                    CURLOPT_HTTPHEADER => array(
-                        'Content-Type: application/json'
-                    ),
-                ));
-
-                $response = curl_exec($curl);
-
-                curl_close($curl);
-
-                $data = json_decode($response, true);
-
-                foreach ($data['data'] as $item)
-                {
-                    if (in_array($item['d'][24], ['Buy', 'StrongBuy']))
-                    {
-                        $logo = 'https://s3-symbol-logo.tradingview.com/' . $item['d'][2] . '.svg';
-
-                        $name = $item['d'][0];
-
-                        $description = $item['d'][1];
-
-                        $close = rtrim(rtrim(number_format($item['d'][6], 2, '.', ''), '0'), '.');
-
-                        $currency = $item['d'][11];
-
-                        if ($item['d'][12] >= 0)
-                        {
-                            $change = '+' . number_format($item['d'][12], 2) . '%';
-                        }
-                        else
-                        {
-                            $change = number_format($item['d'][12], 2) . '%';
-                        }
-
-                        if ($item['d'][13] >= 1000000000000)
-                        {
-                            $value = number_format($item['d'][13] / 1000000000000, 2) . ' T';
-                        }
-                        elseif ($item['d'][13] >= 1000000000)
-                        {
-                            $value = number_format($item['d'][13] / 1000000000, 2) . ' B';
-                        }
-                        elseif ($item['d'][13] >= 1000000)
-                        {
-                            $value = number_format($item['d'][13] / 1000000, 2) . ' M';
-                        }
-                        elseif ($item['d'][13] >= 1000)
-                        {
-                            $value = number_format($item['d'][13] / 1000, 2) . ' K';
-                        }
-                        else
-                        {
-                            $value = number_format($item['d'][13], 2);
-                        }
-
-                        if ($item['d'][24] === 'StrongBuy')
-                        {
-                            $analystRating = 'Strong Buy';
-                        }
-                        else
-                        {
-                            $analystRating = $item['d'][24];
-                        }
-
-                        $results[] = [
-                            'logo'          => $logo,
-                            'name'          => $name,
-                            'description'   => $description,
-                            'close'         => $close,
-                            'currency'      => $currency,
-                            'change'        => $change,
-                            'value'         => $value,
-                            'analystRating' => $analystRating,
-                        ];
-                    }
-                }
-
-                return $results;
+                $volume = number_format($item['d'][16] / 1000000000000, 2) . ' T';
             }
+            elseif ($item['d'][16] >= 1000000000)
+            {
+                $volume = number_format($item['d'][16] / 1000000000, 2) . ' B';
+            }
+            elseif ($item['d'][16] >= 1000000)
+            {
+                $volume = number_format($item['d'][16] / 1000000, 2) . ' M';
+            }
+            elseif ($item['d'][16] >= 1000)
+            {
+                $volume = number_format($item['d'][16] / 1000, 2) . ' K';
+            }
+            else
+            {
+                $volume = number_format($item['d'][16], 2);
+            }
+
+            $price_earnings_ttm = rtrim(rtrim(number_format($item['d'][17], 2, '.', ''), '0'), '.');
+
+            $analystRating = $item['d'][18];
+
+            $results[] = [
+                'logo'               => $logo,
+                'name'               => $name,
+                'description'        => $description,
+                'price'              => $price,
+                'currency'           => $currency,
+                'change'             => $change,
+                'open'               => $open,
+                'high'               => $high,
+                'low'                => $low,
+                'volume'             => $volume,
+                'price_earnings_ttm' => $price_earnings_ttm,
+                'analystRating'      => $analystRating,
+            ];
         }
 
         return $results;
     }
 
-    private function stock_technical_analysis()
+    private function stock_market_movers_gainers()
     {
-        $results = [];
-
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://scanner.tradingview.com/indonesia/scan?label-product=markets-screener',
+            CURLOPT_URL => 'https://id.tradingview.com/markets/stocks-indonesia/market-movers-gainers/',
             CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HEADER => false,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => '{
-                "columns": [
-                    "name",
-                    "description",
-                    "logoid",
-                    "update_mode",
-                    "type",
-                    "typespecs",
-                    "TechRating_1D",
-                    "TechRating_1D.tr",
-                    "MARating_1D",
-                    "MARating_1D.tr",
-                    "OsRating_1D",
-                    "OsRating_1D.tr",
-                    "RSI",
-                    "Mom",
-                    "pricescale",
-                    "minmov",
-                    "fractional",
-                    "minmove2",
-                    "AO",
-                    "CCI20",
-                    "Stoch.K",
-                    "Stoch.D",
-                    "MACD.macd",
-                    "MACD.signal"
-                ],
-                "ignore_unknown_fields": false,
-                "options": { "lang": "id_ID" },
-                "range": [0, 10],
-                "sort": { "sortBy": "Recommend.Other", "sortOrder": "asc" },
-                "preset": "all_stocks"
-            }',
-            CURLOPT_HTTPHEADER => array(
-                'Content-Type: application/json'
-            ),
+            CURLOPT_CUSTOMREQUEST => 'GET',
         ));
 
         $response = curl_exec($curl);
 
         curl_close($curl);
 
-        $result = json_decode($response, true);
+        libxml_use_internal_errors(true);
 
-        if ($result && isset($result['totalCount']))
+        $dom = new \DOMDocument;
+        $dom->loadHTML(trim($response));
+
+        $table = $dom->getElementsByTagName('table')->item(0);
+
+        if ($table !== null)
         {
-            if ($result['totalCount'] > 0)
+            $rows = $table->getElementsByTagName('tr');
+
+            $columns = [
+                'symbol',
+                'change',
+                'price',
+                'volume',
+                'rel_volume',
+                'market_cap',
+                'pe_ratio',
+                'eps_dil_ttm',
+                'eps_dil_growth',
+                'div_yield',
+                'sector',
+                'analyst_rating',
+            ];
+
+            $result = [];
+
+            for ($i = 1, $count = $rows->length; $i < $count; $i++)
             {
-                $curl = curl_init();
+                $cells = $rows->item($i)->getElementsByTagName('td');
 
-                curl_setopt_array($curl, array(
-                    CURLOPT_URL => 'https://scanner.tradingview.com/indonesia/scan?label-product=markets-screener',
-                    CURLOPT_SSL_VERIFYHOST => false,
-                    CURLOPT_SSL_VERIFYPEER => false,
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_HEADER => false,
-                    CURLOPT_CUSTOMREQUEST => 'POST',
-                    CURLOPT_POSTFIELDS => '{
-                        "columns": [
-                            "name",
-                            "description",
-                            "logoid",
-                            "update_mode",
-                            "type",
-                            "typespecs",
-                            "TechRating_1D",
-                            "TechRating_1D.tr",
-                            "MARating_1D",
-                            "MARating_1D.tr",
-                            "OsRating_1D",
-                            "OsRating_1D.tr",
-                            "RSI",
-                            "Mom",
-                            "pricescale",
-                            "minmov",
-                            "fractional",
-                            "minmove2",
-                            "AO",
-                            "CCI20",
-                            "Stoch.K",
-                            "Stoch.D",
-                            "MACD.macd",
-                            "MACD.signal"
-                        ],
-                        "ignore_unknown_fields": false,
-                        "options": { "lang": "id_ID" },
-                        "range": [0, ' . $result['totalCount'] . '],
-                        "sort": { "sortBy": "Recommend.Other", "sortOrder": "asc" },
-                        "preset": "all_stocks"
-                    }',
-                    CURLOPT_HTTPHEADER => array(
-                        'Content-Type: application/json'
-                    ),
-                ));
+                $data = [];
 
-                $response = curl_exec($curl);
-
-                curl_close($curl);
-
-                $data = json_decode($response, true);
-
-                foreach ($data['data'] as $item)
+                for ($j = 0; $j < count($columns); $j++)
                 {
-                    if (($item['d'][6] === 'StrongBuy' && $item['d'][8] === 'StrongBuy' && $item['d'][10] === 'Buy')
-                        || ($item['d'][6] === 'Buy' && $item['d'][8] === 'StrongBuy' && $item['d'][10] === 'StrongBuy')
-                    )
-                    {
-                        $logo = 'https://s3-symbol-logo.tradingview.com/' . $item['d'][2] . '.svg';
-
-                        $name = $item['d'][0];
-
-                        $description = $item['d'][1];
-
-                        if ($item['d'][6] === 'StrongBuy')
-                        {
-                            $techRating_1D = 'Strong Buy';
-                        }
-                        else
-                        {
-                            $techRating_1D = $item['d'][6];
-                        }
-
-                        if ($item['d'][8] === 'StrongBuy')
-                        {
-                            $maRating_1D = 'Strong Buy';
-                        }
-                        else
-                        {
-                            $maRating_1D = $item['d'][8];
-                        }
-
-                        if ($item['d'][10] === 'StrongBuy')
-                        {
-                            $osRating_1D = 'Strong Buy';
-                        }
-                        else
-                        {
-                            $osRating_1D = $item['d'][10];
-                        }
-
-                        $results[] = [
-                            'logo'          => $logo,
-                            'name'          => $name,
-                            'description'   => $description,
-                            'techRating_1D' => $techRating_1D,
-                            'maRating_1D'   => $maRating_1D,
-                            'osRating_1D'   => $osRating_1D,
-                        ];
-                    }
+                    $td = $cells->item($j);
+                    $data[$columns[$j]] = $td ? trim($td->nodeValue) : null;
                 }
 
-                return $results;
-            }
-        }
+                $data['description'] = trim(substr($data['symbol'], 4));
+                $data['symbol'] = substr($data['symbol'], 0, 4);
 
-        return $results;
+                $result[] = $data;
+            }
+
+            return $result;
+        }
+    }
+
+    private function stock_most_active()
+    {
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://www.tradingview.com/markets/stocks-indonesia/market-movers-active/',
+            CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HEADER => false,
+            CURLOPT_CUSTOMREQUEST => 'GET',
+        ));
+
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+
+        libxml_use_internal_errors(true);
+
+        $dom = new \DOMDocument;
+        $dom->loadHTML(trim($response));
+
+        $table = $dom->getElementsByTagName('table')->item(0);
+
+        if ($table !== null)
+        {
+            $rows = $table->getElementsByTagName('tr');
+
+            $columns = [
+                'symbol',
+                'price_x_volume',
+                'price',
+                'change',
+                'volume',
+                'rel_volume',
+                'market_cap',
+                'pe_ratio',
+                'eps_dil_ttm',
+                'eps_dil_growth',
+                'div_yield',
+                'sector',
+                'analyst_rating',
+            ];
+
+            $result = [];
+
+            for ($i = 1, $count = $rows->length; $i < $count; $i++)
+            {
+                $cells = $rows->item($i)->getElementsByTagName('td');
+
+                $data = [];
+
+                for ($j = 0; $j < count($columns); $j++)
+                {
+                    $td = $cells->item($j);
+                    $data[$columns[$j]] = $td ? trim($td->nodeValue) : null;
+                }
+
+                $data['description'] = trim(substr($data['symbol'], 4));
+                $data['symbol'] = substr($data['symbol'], 0, 4);
+
+                $result[] = $data;
+            }
+
+            return $result;
+        }
     }
 }
