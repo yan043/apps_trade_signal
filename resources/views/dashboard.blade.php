@@ -256,11 +256,13 @@
 										<th>Stock Symbol</th>
 										<th class="text-center">Price</th>
 										<th class="text-center">Change</th>
+										<th class="text-center">Change %</th>
 										<th class="text-center">Open</th>
 										<th class="text-center">High</th>
 										<th class="text-center">Low</th>
 										<th class="text-center">Volume</th>
 										<th class="text-center">P/E Ratio</th>
+										<th class="text-center">Dividen Yield %</th>
 										<th class="text-center">Analyst Rating</th>
 									</tr>
 								</thead>
@@ -276,11 +278,22 @@
 											{{ number_format((float)str_replace(',', '', $row['price']), 0, ',', '.') }}
 											<small class="text-muted">{{ $row['currency'] }}</small>
 										</td>
-										<td class="text-center {{ str_starts_with($row['change'], '-') ? 'value-down' : 'value-up' }}">
-											@if(str_starts_with($row['change'], '-'))
+										<td class="text-center {{ (float)str_replace(',', '', $row['change']) == 0 ? 'text-muted' : (str_starts_with($row['change'], '-') ? 'value-down' : 'value-up') }}">
+											@if((float)str_replace(',', '', $row['change']) == 0)
+												{{ number_format((float)str_replace(',', '', $row['change']), 0, ',', '.') }}
+											@elseif(str_starts_with($row['change'], '-'))
 												{{ number_format((float)str_replace(',', '', $row['change']), 0, ',', '.') }}
 											@else
 												+{{ number_format((float)str_replace(',', '', $row['change']), 0, ',', '.') }}
+											@endif
+										</td>
+										<td class="text-center {{ (float)$row['price_change'] == 0 ? 'text-muted' : (str_starts_with($row['price_change'], '-') ? 'value-down' : 'value-up') }}">
+											@if((float)$row['price_change'] == 0)
+												{{ $row['price_change'] }}%
+											@elseif(str_starts_with($row['price_change'], '-'))
+												{{ $row['price_change'] }}%
+											@else
+												+{{ $row['price_change'] }}%
 											@endif
 										</td>
 										<td class="text-center">{{ number_format((float)str_replace(',', '', $row['open']), 0, ',', '.') }}</td>
@@ -288,6 +301,7 @@
 										<td class="text-center">{{ number_format((float)str_replace(',', '', $row['low']), 0, ',', '.') }}</td>
 										<td class="text-center">{{ $row['volume'] }}</td>
 										<td class="text-center">{{ $row['price_earnings_ttm'] }}</td>
+										<td class="text-center">{{ $row['div_yield'] }} %</td>
 										<td class="text-center">
 											@php $ar = $row['analystRating'] ?? null; @endphp
 											@if ($ar === 'StrongBuy')

@@ -27,99 +27,100 @@ class DashboardController extends Controller
             CURLOPT_HEADER => false,
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS => '{
-            "columns": [
-                "name",
-                "description",
-                "logoid",
-                "update_mode",
-                "type",
-                "typespecs",
-                "close",
-                "pricescale",
-                "minmov",
-                "fractional",
-                "minmove2",
-                "currency",
-                "change_abs",
-                "open",
-                "high",
-                "low",
-                "volume",
-                "price_earnings_ttm",
-                "AnalystRating",
-                "AnalystRating.tr",
-                "exchange"
-            ],
-            "filter": [
-                { "left": "price_earnings_ttm", "operation": "egreater", "right": 25 },
-                { "left": "AnalystRating", "operation": "in_range", "right": ["StrongSell", "Sell", "StrongBuy", "Buy"] },
-                { "left": "is_primary", "operation": "equal", "right": true }
-            ],
-            "ignore_unknown_fields": false,
-            "options": { "lang": "en" },
-            "range": [0, 100],
-            "sort": { "sortBy": "market_cap_basic", "sortOrder": "desc" },
-            "symbols": {},
-            "markets": ["indonesia"],
-            "filter2": {
-                "operator": "and",
-                "operands": [
-                    {
-                        "operation": {
-                            "operator": "or",
-                            "operands": [
-                                {
-                                    "operation": {
-                                        "operator": "and",
-                                        "operands": [
-                                            { "expression": { "left": "type", "operation": "equal", "right": "stock" } },
-                                            { "expression": { "left": "typespecs", "operation": "has", "right": ["common"] } }
-                                        ]
-                                    }
-                                },
-                                {
-                                    "operation": {
-                                        "operator": "and",
-                                        "operands": [
-                                            { "expression": { "left": "type", "operation": "equal", "right": "stock" } },
-                                            {
-                                                "expression": {
-                                                    "left": "typespecs",
-                                                    "operation": "has",
-                                                    "right": ["preferred"]
+                "columns": [
+                    "name",
+                    "description",
+                    "logoid",
+                    "update_mode",
+                    "type",
+                    "typespecs",
+                    "close",
+                    "pricescale",
+                    "minmov",
+                    "fractional",
+                    "minmove2",
+                    "currency",
+                    "change_abs",
+                    "change",
+                    "open",
+                    "high",
+                    "low",
+                    "volume",
+                    "price_earnings_ttm",
+                    "dividends_yield",
+                    "AnalystRating",
+                    "AnalystRating.tr",
+                    "exchange"
+                ],
+                "filter": [
+                    { "left": "price_earnings_ttm", "operation": "egreater", "right": 25 },
+                    { "left": "is_primary", "operation": "equal", "right": true }
+                ],
+                "ignore_unknown_fields": false,
+                "options": { "lang": "id_ID" },
+                "range": [0, 200],
+                "sort": { "sortBy": "change", "sortOrder": "desc" },
+                "symbols": {},
+                "markets": ["indonesia"],
+                "filter2": {
+                    "operator": "and",
+                    "operands": [
+                        {
+                            "operation": {
+                                "operator": "or",
+                                "operands": [
+                                    {
+                                        "operation": {
+                                            "operator": "and",
+                                            "operands": [
+                                                { "expression": { "left": "type", "operation": "equal", "right": "stock" } },
+                                                { "expression": { "left": "typespecs", "operation": "has", "right": ["common"] } }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "operation": {
+                                            "operator": "and",
+                                            "operands": [
+                                                { "expression": { "left": "type", "operation": "equal", "right": "stock" } },
+                                                {
+                                                    "expression": {
+                                                        "left": "typespecs",
+                                                        "operation": "has",
+                                                        "right": ["preferred"]
+                                                    }
                                                 }
-                                            }
-                                        ]
-                                    }
-                                },
-                                {
-                                    "operation": {
-                                        "operator": "and",
-                                        "operands": [{ "expression": { "left": "type", "operation": "equal", "right": "dr" } }]
-                                    }
-                                },
-                                {
-                                    "operation": {
-                                        "operator": "and",
-                                        "operands": [
-                                            { "expression": { "left": "type", "operation": "equal", "right": "fund" } },
-                                            {
-                                                "expression": {
-                                                    "left": "typespecs",
-                                                    "operation": "has_none_of",
-                                                    "right": ["etf"]
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "operation": {
+                                            "operator": "and",
+                                            "operands": [{ "expression": { "left": "type", "operation": "equal", "right": "dr" } }]
+                                        }
+                                    },
+                                    {
+                                        "operation": {
+                                            "operator": "and",
+                                            "operands": [
+                                                { "expression": { "left": "type", "operation": "equal", "right": "fund" } },
+                                                {
+                                                    "expression": {
+                                                        "left": "typespecs",
+                                                        "operation": "has_none_of",
+                                                        "right": ["etf"]
+                                                    }
                                                 }
-                                            }
-                                        ]
+                                            ]
+                                        }
                                     }
-                                }
-                            ]
-                        }
-                    },
-                    { "expression": { "left": "typespecs", "operation": "has_none_of", "right": ["pre-ipo"] } }
-                ]
-            }
-        }',
+                                ]
+                            }
+                        },
+                        { "expression": { "left": "typespecs", "operation": "has_none_of", "right": ["pre-ipo"] } }
+                    ]
+                }
+            }',
             CURLOPT_HTTPHEADER => array(
                 'Content-Type: application/json'
             ),
@@ -145,36 +146,40 @@ class DashboardController extends Controller
 
             $change = rtrim(rtrim(number_format($item['d'][12], 2, '.', ''), '0'), '.');
 
-            $open = rtrim(rtrim(number_format($item['d'][13], 2, '.', ''), '0'), '.');
+            $price_change = rtrim(rtrim(number_format($item['d'][13], 2, '.', ''), '0'), '.');
 
-            $high = rtrim(rtrim(number_format($item['d'][14], 2, '.', ''), '0'), '.');
+            $open = rtrim(rtrim(number_format($item['d'][14], 2, '.', ''), '0'), '.');
 
-            $low = rtrim(rtrim(number_format($item['d'][15], 2, '.', ''), '0'), '.');
+            $high = rtrim(rtrim(number_format($item['d'][15], 2, '.', ''), '0'), '.');
 
-            if ($item['d'][16] >= 1000000000000)
+            $low = rtrim(rtrim(number_format($item['d'][16], 2, '.', ''), '0'), '.');
+
+            if ($item['d'][17] >= 1000000000000)
             {
-                $volume = number_format($item['d'][16] / 1000000000000, 2) . ' T';
+                $volume = number_format($item['d'][17] / 1000000000000, 2) . ' T';
             }
-            elseif ($item['d'][16] >= 1000000000)
+            elseif ($item['d'][17] >= 1000000000)
             {
-                $volume = number_format($item['d'][16] / 1000000000, 2) . ' B';
+                $volume = number_format($item['d'][17] / 1000000000, 2) . ' B';
             }
-            elseif ($item['d'][16] >= 1000000)
+            elseif ($item['d'][17] >= 1000000)
             {
-                $volume = number_format($item['d'][16] / 1000000, 2) . ' M';
+                $volume = number_format($item['d'][17] / 1000000, 2) . ' M';
             }
-            elseif ($item['d'][16] >= 1000)
+            elseif ($item['d'][17] >= 1000)
             {
-                $volume = number_format($item['d'][16] / 1000, 2) . ' K';
+                $volume = number_format($item['d'][17] / 1000, 2) . ' K';
             }
             else
             {
-                $volume = number_format($item['d'][16], 2);
+                $volume = number_format($item['d'][17], 2);
             }
 
-            $price_earnings_ttm = rtrim(rtrim(number_format($item['d'][17], 2, '.', ''), '0'), '.');
+            $price_earnings_ttm = rtrim(rtrim(number_format($item['d'][18], 2, '.', ''), '0'), '.');
 
-            $analystRating = $item['d'][18];
+            $div_yield = rtrim(rtrim(number_format($item['d'][19], 2, '.', ''), '0'), '.');
+
+            $analystRating = $item['d'][20];
 
             $results[] = [
                 'logo'               => $logo,
@@ -183,11 +188,13 @@ class DashboardController extends Controller
                 'price'              => $price,
                 'currency'           => $currency,
                 'change'             => $change,
+                'price_change'       => $price_change,
                 'open'               => $open,
                 'high'               => $high,
                 'low'                => $low,
                 'volume'             => $volume,
                 'price_earnings_ttm' => $price_earnings_ttm,
+                'div_yield'          => $div_yield,
                 'analystRating'      => $analystRating,
             ];
         }
