@@ -2,18 +2,20 @@
 
 namespace App\Http\Controllers;
 
+date_default_timezone_set('Asia/Jakarta');
+
 class DashboardController extends Controller
 {
     public function index()
     {
-        $stock_price_to_earnings_ratio = self::stock_price_to_earnings_ratio();
+        $stock_trend_markets         = self::stock_trend_markets();
         $stock_market_movers_gainers = self::stock_market_movers_gainers();
-        $stock_most_active = self::stock_most_active();
+        $stock_most_active           = self::stock_most_active();
 
-        return view('dashboard', compact('stock_price_to_earnings_ratio', 'stock_market_movers_gainers', 'stock_most_active'));
+        return view('dashboard', compact('stock_trend_markets', 'stock_market_movers_gainers', 'stock_most_active'));
     }
 
-    private function stock_price_to_earnings_ratio()
+    private function stock_trend_markets()
     {
         $results = [];
 
@@ -50,6 +52,19 @@ class DashboardController extends Controller
                     "dividends_yield",
                     "AnalystRating",
                     "AnalystRating.tr",
+                    "EMA9",
+                    "EMA21",
+                    "EMA50",
+                    "EMA200",
+                    "RSI",
+                    "VWAP",
+                    "ATR",
+                    "BB.upper",
+                    "SMA20",
+                    "MACD.macd",
+                    "MACD.signal",
+                    "ADX",
+                    "Stoch.K_14_1_3",
                     "exchange"
                 ],
                 "filter": [
@@ -57,8 +72,8 @@ class DashboardController extends Controller
                     { "left": "is_primary", "operation": "equal", "right": true }
                 ],
                 "ignore_unknown_fields": false,
-                "options": { "lang": "id_ID" },
-                "range": [0, 200],
+                "options": { "lang": "en" },
+                "range": [0, 500],
                 "sort": { "sortBy": "change", "sortOrder": "desc" },
                 "symbols": {},
                 "markets": ["indonesia"],

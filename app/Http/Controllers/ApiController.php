@@ -4,25 +4,25 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+date_default_timezone_set('Asia/Jakarta');
+
 class ApiController extends Controller
 {
-    public function getStockData()
+    public function stock_data()
     {
-        $stock_price_to_earnings_ratio = $this->stock_price_to_earnings_ratio();
+        $stock_trend_markets         = $this->stock_trend_markets();
         $stock_market_movers_gainers = $this->stock_market_movers_gainers();
-        $stock_most_active = $this->stock_most_active();
-
-        $lastUpdated = now()->format('Y-m-d H:i:s');
+        $stock_most_active           = $this->stock_most_active();
 
         return response()->json([
-            'stock_price_to_earnings_ratio' => $stock_price_to_earnings_ratio,
+            'stock_trend_markets'         => $stock_trend_markets,
             'stock_market_movers_gainers' => $stock_market_movers_gainers,
-            'stock_most_active' => $stock_most_active,
-            'last_updated' => $lastUpdated,
+            'stock_most_active'           => $stock_most_active,
+            'last_updated'                => now()->format('Y-m-d H:i:s'),
         ]);
     }
 
-    private function stock_price_to_earnings_ratio()
+    private function stock_trend_markets()
     {
         $results = [];
 
@@ -59,6 +59,19 @@ class ApiController extends Controller
                     "dividends_yield",
                     "AnalystRating",
                     "AnalystRating.tr",
+                    "EMA9",
+                    "EMA21",
+                    "EMA50",
+                    "EMA200",
+                    "RSI",
+                    "VWAP",
+                    "ATR",
+                    "BB.upper",
+                    "SMA20",
+                    "MACD.macd",
+                    "MACD.signal",
+                    "ADX",
+                    "Stoch.K_14_1_3",
                     "exchange"
                 ],
                 "filter": [
@@ -66,8 +79,8 @@ class ApiController extends Controller
                     { "left": "is_primary", "operation": "equal", "right": true }
                 ],
                 "ignore_unknown_fields": false,
-                "options": { "lang": "id_ID" },
-                "range": [0, 200],
+                "options": { "lang": "en" },
+                "range": [0, 500],
                 "sort": { "sortBy": "change", "sortOrder": "desc" },
                 "symbols": {},
                 "markets": ["indonesia"],
