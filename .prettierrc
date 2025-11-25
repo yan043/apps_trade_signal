@@ -12,7 +12,12 @@
 			"options": {
 				"parser": "blade",
 				"tabWidth": 1,
-				"useTabs": true
+				"useTabs": true,
+				"wrapAttributes": "auto",
+				"wrapLineLength": 120,
+				"indentInnerHtml": true,
+				"sortTailwindcssClasses": false,
+				"sortHtmlAttributes": "none"
 			}
 		},
 		{
@@ -20,7 +25,12 @@
 			"options": {
 				"parser": "babel",
 				"tabWidth": 4,
-				"useTabs": true
+				"useTabs": true,
+				"bracketSameLine": false,
+				"semi": true,
+				"singleQuote": true,
+				"trailingComma": "none",
+				"arrowParens": "always"
 			}
 		}
 	]
