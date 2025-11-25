@@ -16,8 +16,8 @@ class TradingSignalController extends Controller
 
     public function __construct()
     {
-        $this->tokenBot = '8569525461:AAHSXyQFJIh3vs9wNrwGIFnf4-xlHaj_5FI';
-        $this->chatID = '401791818';
+        $this->tokenBot = env('TELEGRAM_BOT_TOKEN');
+        $this->chatID = env('TELEGRAM_CHAT_ID');
     }
 
     public function generateAndSendSignals()
