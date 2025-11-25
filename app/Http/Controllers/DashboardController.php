@@ -15,6 +15,11 @@ class DashboardController extends Controller
         return view('dashboard', compact('stock_trend_markets', 'stock_market_movers_gainers', 'stock_most_active'));
     }
 
+    public function signal()
+    {
+        return view('dashboard-signal');
+    }
+
     private function stock_trend_markets()
     {
         $results = [];

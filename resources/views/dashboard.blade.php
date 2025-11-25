@@ -5,7 +5,7 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="csrf-token" content="{{ csrf_token() }}" />
-		<title>Signal Stock Indonesia & Crypto</title>
+		<title>Best Stock Market Trends</title>
 		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
 		<link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -223,7 +223,7 @@
 			</div>
 		</div>
 		<div class="container-fluid mt-4">
-			<h1 class="text-center mb-3">🚀 Signal Stock Indonesia & Crypto</h1>
+			<h1 class="text-center mb-3">🚀 Best Stock Market Trends</h1>
 			<div class="text-center mb-4">
 				<div class="last-updated" id="last-updated">
 					<span id="clock"></span>
