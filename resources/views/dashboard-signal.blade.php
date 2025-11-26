@@ -307,9 +307,6 @@
 								<span class="signal-title">Scalping Signals</span>
 								<br><small id="trading-session-scalping" class="badge"></small>
 							</div>
-							<div class="d-flex align-items-center gap-2">
-								<span id="countdown-timer-scalping" class="badge bg-light countdown-timer">15:00</span>
-							</div>
 						</div>
 						<div class="signal-body" id="scalping-signals-container">
 							<div class="loading-spinner">
@@ -329,9 +326,6 @@
 								<span class="signal-title">Swing Trading Signals</span>
 								<br><small id="trading-session-swing" class="badge"></small>
 							</div>
-							<div class="d-flex align-items-center gap-2">
-								<span id="countdown-timer-swing" class="badge bg-light countdown-timer">60:00</span>
-							</div>
 						</div>
 						<div class="signal-body" id="swing-signals-container">
 							<div class="loading-spinner">
@@ -347,10 +341,6 @@
 		</div>
 
 		<script>
-			var countdownIntervalScalping;
-			var countdownIntervalSwing;
-			var timeRemainingScalping = 15 * 60;
-			var timeRemainingSwing = 60 * 60;
 			var isMob = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 			function formatNumber(num) {
@@ -547,11 +537,8 @@
 				container.html(html);
 			}
 
-			function loadSignals() {
-				$('#refresh-indicator').show();
 
-				$('#scalping-signals-container, #swing-signals-container').addClass('opacity-50');
-
+			function loadSignalsRealtime() {
 				$.ajax({
 					url: '/api/trading-signals',
 					method: 'GET',
@@ -559,70 +546,17 @@
 					success: function(data) {
 						renderScalpingSignals(data.scalping_signals);
 						renderSwingSignals(data.swing_signals);
-
-						$('#scalping-signals-container, #swing-signals-container').removeClass('opacity-50');
+						if (data.sent_at) {
+							$("#last-updated").text('Last updated: ' + data.sent_at + ' WIB');
+						}
 						$('#refresh-indicator').hide();
-
-						timeRemainingScalping = 15 * 60;
+						$('#scalping-signals-container, #swing-signals-container').removeClass('opacity-50');
 					},
-					error: function(xhr, status, error) {
-						$('#scalping-signals-container, #swing-signals-container').html(`
-                        <div class="no-signals">
-                            <svg width="64" height="64" fill="currentColor" class="text-danger opacity-50" viewBox="0 0 16 16">
-                                <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
-                            </svg>
-                            <h5 class="mt-3 text-danger">Error Loading Signals</h5>
-                            <p>Please try again later</p>
-                        </div>
-                    `);
-						$('#scalping-signals-container, #swing-signals-container').removeClass('opacity-50');
-						$('#refresh-indicator').hide();
+					error: function() {},
+					complete: function() {
+						setTimeout(loadSignalsRealtime, 5000);
 					}
 				});
-			}
-
-			function loadSwingSignals() {
-				$.ajax({
-					url: '/api/trading-signals',
-					method: 'GET',
-					dataType: 'json',
-					success: function(data) {
-						renderSwingSignals(data.swing_signals);
-
-						timeRemainingSwing = 60 * 60;
-					},
-					error: function(xhr, status, error) {
-						console.error('Error loading swing signals:', error);
-					}
-				});
-			}
-
-			function updateCountdownScalping() {
-				var minutes = Math.floor(timeRemainingScalping / 60);
-				var seconds = timeRemainingScalping % 60;
-				var timeString = (minutes < 10 ? '0' : '') + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-
-				$('#countdown-timer-scalping').text(timeString);
-
-				if (timeRemainingScalping <= 0) {
-					loadSignals();
-				} else {
-					timeRemainingScalping--;
-				}
-			}
-
-			function updateCountdownSwing() {
-				var minutes = Math.floor(timeRemainingSwing / 60);
-				var seconds = timeRemainingSwing % 60;
-				var timeString = (minutes < 10 ? '0' : '') + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-
-				$('#countdown-timer-swing').text(timeString);
-
-				if (timeRemainingSwing <= 0) {
-					loadSwingSignals();
-				} else {
-					timeRemainingSwing--;
-				}
 			}
 
 			function showTime() {
@@ -710,19 +644,12 @@
 			}
 
 			$(document).ready(function() {
-				loadSignals();
-
+				loadSignalsRealtime();
 				if (!isMob) {
 					setInterval(showTime, 500);
 				} else {
 					setInterval(showTime, 1000);
 				}
-
-				updateCountdownScalping();
-				countdownIntervalScalping = setInterval(updateCountdownScalping, 1000);
-
-				updateCountdownSwing();
-				countdownIntervalSwing = setInterval(updateCountdownSwing, 1000);
 			});
 		</script>
 	</body>
