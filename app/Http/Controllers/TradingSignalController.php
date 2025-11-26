@@ -52,12 +52,12 @@ class TradingSignalController extends Controller
 
         if (!empty($scalpingSignals))
         {
-            $this->sendScalpingSignals(array_slice($scalpingSignals, 0, 5));
+            $this->sendScalpingSignals(array_slice($scalpingSignals, 0, 10));
         }
 
         if (!empty($swingSignals))
         {
-            $this->sendSwingSignals(array_slice($swingSignals, 0, 5));
+            $this->sendSwingSignals(array_slice($swingSignals, 0, 10));
         }
 
         return response()->json([
@@ -417,7 +417,7 @@ class TradingSignalController extends Controller
                 ],
                 "ignore_unknown_fields": false,
                 "options": { "lang": "en" },
-                "range": [0, 300],
+                "range": [0, 1000],
                 "sort": { "sortBy": "volume", "sortOrder": "desc" },
                 "symbols": {},
                 "markets": ["indonesia"]

@@ -73,12 +73,11 @@ class DashboardController extends Controller
                     "exchange"
                 ],
                 "filter": [
-                    { "left": "price_earnings_ttm", "operation": "egreater", "right": 25 },
                     { "left": "is_primary", "operation": "equal", "right": true }
                 ],
                 "ignore_unknown_fields": false,
                 "options": { "lang": "en" },
-                "range": [0, 500],
+                "range": [0, 1000],
                 "sort": { "sortBy": "change", "sortOrder": "desc" },
                 "symbols": {},
                 "markets": ["indonesia"],

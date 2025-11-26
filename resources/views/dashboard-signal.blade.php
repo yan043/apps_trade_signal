@@ -374,7 +374,7 @@
 					return;
 				}
 
-				const buySignals = signals.filter(s => s.signal === 'STRONG BUY' || s.signal === 'BUY').slice(0, 5);
+				const buySignals = signals.filter(s => s.signal === 'STRONG BUY' || s.signal === 'BUY').slice(0, 10);
 
 				if (buySignals.length === 0) {
 					container.html(`
@@ -464,7 +464,7 @@
 					return;
 				}
 
-				const buySignals = signals.filter(s => s.signal === 'STRONG BUY' || s.signal === 'BUY').slice(0, 5);
+				const buySignals = signals.filter(s => s.signal === 'STRONG BUY' || s.signal === 'BUY').slice(0, 10);
 
 				if (buySignals.length === 0) {
 					container.html(`

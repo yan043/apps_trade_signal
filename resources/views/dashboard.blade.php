@@ -534,23 +534,53 @@
 					stockData = data;
 
 					data.forEach(function(row) {
-						var changeClass = row.change.startsWith('-') ? 'value-down' : 'value-up';
-						var changeDisplay = row.change.startsWith('-') ? formatNumber(row.change) : '+' + formatNumber(row
-							.change);
-						var analystRatingHtml = getAnalystRatingHtml(row.analystRating);
+						var logo = row.logo || '';
+						var name = row.name || '';
+						var description = row.description || '';
+						var price = row.price || '';
+						var currency = row.currency || '';
+						var change = (typeof row.change !== 'undefined' && row.change !== null) ? row.change.toString() : '';
+						var price_change = (typeof row.price_change !== 'undefined' && row.price_change !== null) ? row
+							.price_change.toString() : '';
+						var open = row.open || '';
+						var high = row.high || '';
+						var low = row.low || '';
+						var volume = row.volume || '';
+						var price_earnings_ttm = row.price_earnings_ttm || '';
+						var div_yield = row.div_yield || '';
+						var analystRating = row.analystRating || '';
 
-						stockTable.row.add([
-							'<div class="symbol-cell"><img src="' + row.logo + '" alt="logo" class="logo" /><span>' +
-							row.name + '</span><small class="text-muted">' + row.description + '</small></div>',
-							formatNumber(row.price) + ' <small class="text-muted">' + row.currency + '</small>',
+						var changeClass = change.startsWith('-') ? 'value-down' : 'value-up';
+						var changeDisplay = change.startsWith('-') ? formatNumber(change) : (change !== '' ? '+' +
+							formatNumber(change) : '');
+						var priceChangeClass = price_change.startsWith('-') ? 'value-down' : 'value-up';
+						var priceChangeDisplay = price_change.startsWith('-') ? price_change : (price_change !== '' ? '+' +
+							price_change : '');
+						var analystRatingHtml = getAnalystRatingHtml(analystRating);
+
+						var rowArr = [
+							'<div class="symbol-cell"><img src="' + logo + '" alt="logo" class="logo" /><span>' + name +
+							'</span><small class="text-muted">' + description + '</small></div>',
+							formatNumber(price) + ' <small class="text-muted">' + currency + '</small>',
 							'<span class="' + changeClass + '">' + changeDisplay + '</span>',
-							formatNumber(row.open) + ' <small class="text-muted">' + row.currency + '</small>',
-							formatNumber(row.high) + ' <small class="text-muted">' + row.currency + '</small>',
-							formatNumber(row.low) + ' <small class="text-muted">' + row.currency + '</small>',
-							row.volume,
-							row.price_earnings_ttm,
+							'<span class="' + priceChangeClass + '">' + priceChangeDisplay + '%</span>',
+							formatNumber(open),
+							formatNumber(high),
+							formatNumber(low),
+							volume,
+							price_earnings_ttm,
+							div_yield + ' %',
 							analystRatingHtml
-						]);
+						];
+
+						while (rowArr.length < 11) {
+							rowArr.push('');
+						}
+						if (rowArr.length > 11) {
+							rowArr = rowArr.slice(0, 11);
+						}
+
+						stockTable.row.add(rowArr);
 					});
 
 					stockTable.draw();
