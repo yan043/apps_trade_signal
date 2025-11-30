@@ -602,9 +602,14 @@ class TradingSignalController extends Controller
 
     private function sendScalpingSignals($signals)
     {
-        $message = "<b>SCALPING SIGNALS (M1-M5)</b>\n";
-        $message .= "Date/Time: " . now()->format('d M Y H:i:s') . " WIB\n";
-        $message .= "==========================================\n\n";
+        $header = "<b>SCALPING SIGNALS (M1-M5)</b>\n";
+        $header .= "Date/Time: " . now()->format('d M Y H:i:s') . " WIB\n";
+        $header .= "==========================================\n\n";
+
+        $messages = [];
+        $current = '';
+        $maxLen = 4000;
+        $bodies = [];
 
         foreach ($signals as $index => $signal)
         {
@@ -638,31 +643,60 @@ class TradingSignalController extends Controller
             $tp2p = $signal['takeProfit2_percent'];
             $tp3p = $signal['takeProfit3_percent'];
 
-            $message .= "#{$num} {$symbol}\n";
-            $message .= "{$desc}\n";
-            $message .= "Price: {$price}\n";
-            $message .= "Signal: {$sig} (Score: {$score})\n";
-            $message .= "Entry: {$entry1} - {$entry2}\n";
-            $message .= "TP 1: {$tp1} ({$tp1p}%) | TP 2: {$tp2} ({$tp2p}%) | TP 3: {$tp3} ({$tp3p}%)\n";
-            $message .= "SL: {$stopLoss}\n";
-            $message .= "==========================================\n\n";
+            $body = "#{$num} {$symbol}\n";
+            $body .= "{$desc}\n";
+            $body .= "Price: {$price}\n";
+            $body .= "Signal: {$sig} (Score: {$score})\n";
+            $body .= "Entry: {$entry1} - {$entry2}\n";
+            $body .= "TP 1: {$tp1} ({$tp1p}%) | TP 2: {$tp2} ({$tp2p}%) | TP 3: {$tp3} ({$tp3p}%)\n";
+            $body .= "SL: {$stopLoss}\n";
+            $body .= "==========================================\n\n";
+            $bodies[] = $body;
         }
 
-        if ($this->scalpingThreadID)
+        $page = 1;
+        $pages = [];
+        $current = '';
+        foreach ($bodies as $body)
         {
-            TelegramModel::sendMessageThread($this->tokenBot, $this->chatID, $this->scalpingThreadID, $message);
+            if (strlen($header . $current . $body) > $maxLen && $current !== '')
+            {
+                $pages[] = $current;
+                $current = '';
+            }
+            $current .= $body;
         }
-        else
+        if ($current !== '')
         {
-            TelegramModel::sendMessage($this->tokenBot, $this->chatID, $message);
+            $pages[] = $current;
+        }
+
+        $totalPages = count($pages);
+        foreach ($pages as $i => $content)
+        {
+            $pageHeader = $header . "<b>Page " . ($i + 1) . " of {$totalPages}</b>\n\n";
+            $msg = $pageHeader . $content;
+            if ($this->scalpingThreadID)
+            {
+                TelegramModel::sendMessageThread($this->tokenBot, $this->chatID, $this->scalpingThreadID, $msg);
+            }
+            else
+            {
+                TelegramModel::sendMessage($this->tokenBot, $this->chatID, $msg);
+            }
         }
     }
 
     private function sendSwingSignals($signals)
     {
-        $message = "<b>SWING TRADING SIGNALS (H1-D1)</b>\n";
-        $message .= "Date/Time: " . now()->format('d M Y H:i:s') . " WIB\n";
-        $message .= "==========================================\n\n";
+        $header = "<b>SWING TRADING SIGNALS (H1-D1)</b>\n";
+        $header .= "Date/Time: " . now()->format('d M Y H:i:s') . " WIB\n";
+        $header .= "==========================================\n\n";
+
+        $messages = [];
+        $current = '';
+        $maxLen = 4000;
+        $bodies = [];
 
         foreach ($signals as $index => $signal)
         {
@@ -696,23 +730,47 @@ class TradingSignalController extends Controller
             $tp2p = $signal['takeProfit2_percent'];
             $tp3p = $signal['takeProfit3_percent'];
 
-            $message .= "#{$num} {$symbol}\n";
-            $message .= "{$desc}\n";
-            $message .= "Price: {$price}\n";
-            $message .= "Signal: {$sig} (Score: {$score})\n";
-            $message .= "Entry: {$entry1} - {$entry2}\n";
-            $message .= "TP 1: {$tp1} ({$tp1p}%) | TP 2: {$tp2} ({$tp2p}%) | TP 3: {$tp3} ({$tp3p}%)\n";
-            $message .= "SL: {$stopLoss}\n";
-            $message .= "==========================================\n\n";
+            $body = "#{$num} {$symbol}\n";
+            $body .= "{$desc}\n";
+            $body .= "Price: {$price}\n";
+            $body .= "Signal: {$sig} (Score: {$score})\n";
+            $body .= "Entry: {$entry1} - {$entry2}\n";
+            $body .= "TP 1: {$tp1} ({$tp1p}%) | TP 2: {$tp2} ({$tp2p}%) | TP 3: {$tp3} ({$tp3p}%)\n";
+            $body .= "SL: {$stopLoss}\n";
+            $body .= "==========================================\n\n";
+            $bodies[] = $body;
         }
 
-        if ($this->swingThreadID)
+        $page = 1;
+        $pages = [];
+        $current = '';
+        foreach ($bodies as $body)
         {
-            TelegramModel::sendMessageThread($this->tokenBot, $this->chatID, $this->swingThreadID, $message);
+            if (strlen($header . $current . $body) > $maxLen && $current !== '')
+            {
+                $pages[] = $current;
+                $current = '';
+            }
+            $current .= $body;
         }
-        else
+        if ($current !== '')
         {
-            TelegramModel::sendMessage($this->tokenBot, $this->chatID, $message);
+            $pages[] = $current;
+        }
+
+        $totalPages = count($pages);
+        foreach ($pages as $i => $content)
+        {
+            $pageHeader = $header . "<b>Page " . ($i + 1) . " of {$totalPages}</b>\n\n";
+            $msg = $pageHeader . $content;
+            if ($this->swingThreadID)
+            {
+                TelegramModel::sendMessageThread($this->tokenBot, $this->chatID, $this->swingThreadID, $msg);
+            }
+            else
+            {
+                TelegramModel::sendMessage($this->tokenBot, $this->chatID, $msg);
+            }
         }
     }
 

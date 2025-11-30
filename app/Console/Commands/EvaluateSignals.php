@@ -27,10 +27,11 @@ class EvaluateSignals extends Command
         $symbols = $signals->pluck('symbol')->unique()->values()->all();
         $closePrices = $this->fetchClosePrices($symbols);
 
-        $report = "<b>EVALUASI SINYAL TRADING</b>\n";
-        $report .= "Date: " . now('Asia/Jakarta')->format('d M Y') . "\n";
-        $report .= "==========================================\n\n";
+        $header = "<b>EVALUASI SINYAL TRADING</b>\n";
+        $header .= "Date: " . now('Asia/Jakarta')->format('d M Y') . "\n";
+        $header .= "==========================================\n\n";
 
+        $bodies = [];
         foreach ($signals as $signal)
         {
             $symbol = $signal->symbol;
@@ -74,23 +75,48 @@ class EvaluateSignals extends Command
                     }
                 }
 
-                $report .= "#{$symbol}\n";
-                $report .= "{$desc}\n";
-                $report .= "Type: " . strtoupper($signal->signal_type) . "\n";
-                $report .= "Signal: {$signalType} (Score: {$score})\n";
-                $report .= "Entry Price: " . number_format($signal->signal_price, 0, ',', '.') . "\n";
-                $report .= "Close Price: " . number_format($close, 0, ',', '.') . "\n";
-                $report .= "Change: {$changeStr}\n";
-                $report .= "Entry: {$entry1} - {$entry2}\n";
-                $report .= "TP 1: {$tp1} ({$tp1p}%) | TP 2: {$tp2} ({$tp2p}%) | TP 3: {$tp3} ({$tp3p}%)\n";
-                $report .= "SL: {$sl}\n";
-                $report .= "==========================================\n\n";
+                $body = "#{$symbol}\n";
+                $body .= "{$desc}\n";
+                $body .= "Type: " . strtoupper($signal->signal_type) . "\n";
+                $body .= "Signal: {$signalType} (Score: {$score})\n";
+                $body .= "Entry Price: " . number_format($signal->signal_price, 0, ',', '.') . "\n";
+                $body .= "Close Price: " . number_format($close, 0, ',', '.') . "\n";
+                $body .= "Change: {$changeStr}\n";
+                $body .= "Entry: {$entry1} - {$entry2}\n";
+                $body .= "TP 1: {$tp1} ({$tp1p}%) | TP 2: {$tp2} ({$tp2p}%) | TP 3: {$tp3} ({$tp3p}%)\n";
+                $body .= "SL: {$sl}\n";
+                $body .= "==========================================\n\n";
+                $bodies[] = $body;
             }
         }
 
-        TelegramModel::sendMessage(env('TELEGRAM_BOT_TOKEN'), env('TELEGRAM_CHAT_ID'), $report);
+        $maxLen = 4000;
+        $pages = [];
+        $current = '';
+        foreach ($bodies as $body)
+        {
+            if (strlen($header . $current . $body) > $maxLen && $current !== '')
+            {
+                $pages[] = $current;
+                $current = '';
+            }
+            $current .= $body;
+        }
+        if ($current !== '')
+        {
+            $pages[] = $current;
+        }
 
-        $this->info($report);
+        $totalPages = count($pages);
+        foreach ($pages as $i => $content)
+        {
+            $pageHeader = $header . "<b>Page " . ($i + 1) . " of {$totalPages}</b>\n\n";
+            $msg = $pageHeader . $content;
+            TelegramModel::sendMessage(env('TELEGRAM_BOT_TOKEN'), env('TELEGRAM_CHAT_ID'), $msg);
+        }
+
+        $fullReport = $header . implode('', $bodies);
+        $this->info($fullReport);
         return 0;
     }
 
