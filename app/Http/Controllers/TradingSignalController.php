@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\TelegramModel;
+use App\Models\SignalHistory;
 
 date_default_timezone_set('Asia/Jakarta');
 
@@ -16,8 +16,8 @@ class TradingSignalController extends Controller
 
     public function __construct()
     {
-        $this->tokenBot = '8569525461:AAHSXyQFJIh3vs9wNrwGIFnf4-xlHaj_5FI';
-        $this->chatID = '-1003258967312';
+        $this->tokenBot = env('TELEGRAM_BOT_TOKEN');
+        $this->chatID = env('TELEGRAM_CHAT_ID');
     }
 
     public function generateAndSendSignals()
@@ -607,6 +607,19 @@ class TradingSignalController extends Controller
 
         foreach ($signals as $index => $signal)
         {
+            $sentAt = now()->startOfDay();
+            SignalHistory::updateOrCreate(
+                [
+                    'symbol' => $signal['symbol'],
+                    'signal_type' => 'scalping',
+                    'sent_at' => $sentAt,
+                ],
+                [
+                    'signal' => $signal['signal'],
+                    'signal_price' => $signal['price'],
+                    'extra' => json_encode($signal),
+                ]
+            );
             $num = $index + 1;
             $symbol = $signal['symbol'];
             $desc = $signal['description'];
@@ -674,6 +687,19 @@ class TradingSignalController extends Controller
 
         foreach ($signals as $index => $signal)
         {
+            $sentAt = now()->startOfDay();
+            SignalHistory::updateOrCreate(
+                [
+                    'symbol' => $signal['symbol'],
+                    'signal_type' => 'swing',
+                    'sent_at' => $sentAt,
+                ],
+                [
+                    'signal' => $signal['signal'],
+                    'signal_price' => $signal['price'],
+                    'extra' => json_encode($signal),
+                ]
+            );
             $trendLabel = $signal['trendStrength'] == 2 ? '🚀 Strong Uptrend' : ($signal['trendStrength'] == 1 ? '📈 Uptrend' : '〰️ Neutral');
             $num = $index + 1;
             $symbol = $signal['symbol'];
