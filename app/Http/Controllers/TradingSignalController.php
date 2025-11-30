@@ -30,12 +30,13 @@ class TradingSignalController extends Controller
         foreach ($stockData as $stock)
         {
             $scalpSignal = $this->calculateScalpingSignal($stock);
-            if ($scalpSignal['signal'] === 'STRONG BUY' || $scalpSignal['signal'] === 'BUY')
+            if ($scalpSignal['signal'] === 'STRONG BUY')
             {
                 $scalpingSignals[] = $scalpSignal;
             }
+
             $swingSignal = $this->calculateSwingSignal($stock);
-            if ($swingSignal['signal'] === 'STRONG BUY' || $swingSignal['signal'] === 'BUY')
+            if ($swingSignal['signal'] === 'STRONG BUY')
             {
                 $swingSignals[] = $swingSignal;
             }
@@ -52,12 +53,12 @@ class TradingSignalController extends Controller
 
         if (!empty($scalpingSignals))
         {
-            $this->sendScalpingSignals(array_slice($scalpingSignals, 0, 10));
+            $this->sendScalpingSignals($scalpingSignals);
         }
 
         if (!empty($swingSignals))
         {
-            $this->sendSwingSignals(array_slice($swingSignals, 0, 10));
+            $this->sendSwingSignals($swingSignals);
         }
 
         return response()->json([
@@ -601,9 +602,9 @@ class TradingSignalController extends Controller
 
     private function sendScalpingSignals($signals)
     {
-        $message = "<b>🎯 SCALPING SIGNALS (M1-M5)</b>\n";
-        $message .= "==========================================\n";
-        $message .= "📅 Date/Time: " . now()->format('d M Y H:i:s') . " WIB\n\n";
+        $message = "<b>SCALPING SIGNALS (M1-M5)</b>\n";
+        $message .= "Date/Time: " . now()->format('d M Y H:i:s') . " WIB\n";
+        $message .= "==========================================\n\n";
 
         foreach ($signals as $index => $signal)
         {
@@ -620,6 +621,7 @@ class TradingSignalController extends Controller
                     'extra' => json_encode($signal),
                 ]
             );
+
             $num = $index + 1;
             $symbol = $signal['symbol'];
             $desc = $signal['description'];
@@ -635,39 +637,16 @@ class TradingSignalController extends Controller
             $tp1p = $signal['takeProfit1_percent'];
             $tp2p = $signal['takeProfit2_percent'];
             $tp3p = $signal['takeProfit3_percent'];
-            $rsi = $signal['rsi'];
-            $macd = $signal['macd'];
-            $adx = $signal['adx'];
-            $rr = $signal['riskReward'];
-            $marketState = $signal['marketState'];
-            $volRatio = $signal['volumeRatio'];
 
-            $stateEmoji = $marketState == 'TRENDING' ? '📈' : ($marketState == 'MILD' ? '📊' : '〰️');
-            $divInfo = '';
-            if ($signal['bullishDivergence']) $divInfo .= '✅ Bullish Div ';
-            if ($signal['bearishDivergence']) $divInfo .= '⚠️ Bearish Div ';
-            $srInfo = '';
-            if ($signal['nearSupport']) $srInfo .= '🟢 Near Support ';
-            if ($signal['nearResistance']) $srInfo .= '🔴 Near Resistance ';
-
-            $message .= "<b>#{$num} {$symbol}</b>\n";
-            $message .= "🏢 {$desc}\n";
-            $message .= "💰 Price: {$price}\n";
-            $message .= "📊 Signal: <b>{$sig}</b> (Score: {$score})\n";
-            $message .= "🎯 Entry: {$entry1} - {$entry2}\n";
-            $message .= "🛑 Stop Loss: {$stopLoss}\n";
-            $message .= "✅ TP1: {$tp1} (+{$tp1p}%)\n";
-            $message .= "✅ TP2: {$tp2} (+{$tp2p}%)\n";
-            $message .= "✅ TP3: {$tp3} (+{$tp3p}%)\n";
-            $message .= "📈 RSI: {$rsi} | MACD: {$macd} | ADX: {$adx}\n";
-            $message .= "{$stateEmoji} Market: {$marketState} | Vol: {$volRatio}x\n";
-            $message .= "⚖️ Risk/Reward: 1:{$rr}\n";
-            if ($divInfo) $message .= "🔍 {$divInfo}\n";
-            if ($srInfo) $message .= "📍 {$srInfo}\n";
+            $message .= "#{$num} {$symbol}\n";
+            $message .= "{$desc}\n";
+            $message .= "Price: {$price}\n";
+            $message .= "Signal: {$sig} (Score: {$score})\n";
+            $message .= "Entry: {$entry1} - {$entry2}\n";
+            $message .= "TP 1: {$tp1} ({$tp1p}%) | TP 2: {$tp2} ({$tp2p}%) | TP 3: {$tp3} ({$tp3p}%)\n";
+            $message .= "SL: {$stopLoss}\n";
             $message .= "==========================================\n\n";
         }
-
-        $message .= "<i>⚠️ Use proper risk management! Trade at your own risk.</i>";
 
         if ($this->scalpingThreadID)
         {
@@ -681,9 +660,9 @@ class TradingSignalController extends Controller
 
     private function sendSwingSignals($signals)
     {
-        $message = "<b>📊 SWING TRADING SIGNALS (H1-D1)</b>\n";
-        $message .= "==========================================\n";
-        $message .= "📅 Date/Time: " . now()->format('d M Y H:i:s') . " WIB\n\n";
+        $message = "<b>SWING TRADING SIGNALS (H1-D1)</b>\n";
+        $message .= "Date/Time: " . now()->format('d M Y H:i:s') . " WIB\n";
+        $message .= "==========================================\n\n";
 
         foreach ($signals as $index => $signal)
         {
@@ -700,7 +679,7 @@ class TradingSignalController extends Controller
                     'extra' => json_encode($signal),
                 ]
             );
-            $trendLabel = $signal['trendStrength'] == 2 ? '🚀 Strong Uptrend' : ($signal['trendStrength'] == 1 ? '📈 Uptrend' : '〰️ Neutral');
+
             $num = $index + 1;
             $symbol = $signal['symbol'];
             $desc = $signal['description'];
@@ -716,37 +695,16 @@ class TradingSignalController extends Controller
             $tp1p = $signal['takeProfit1_percent'];
             $tp2p = $signal['takeProfit2_percent'];
             $tp3p = $signal['takeProfit3_percent'];
-            $rsi = $signal['rsi'];
-            $macd = $signal['macd'];
-            $adx = $signal['adx'];
-            $rr = $signal['riskReward'];
-            $volRatio = $signal['volumeRatio'];
 
-            $divInfo = '';
-            if ($signal['bullishDivergence']) $divInfo .= '✅ Bullish Div ';
-            if ($signal['bearishDivergence']) $divInfo .= '⚠️ Bearish Div ';
-            $srInfo = '';
-            if ($signal['nearSupport']) $srInfo .= '🟢 Near Support ';
-            if ($signal['nearResistance']) $srInfo .= '🔴 Near Resistance ';
-
-            $message .= "<b>#{$num} {$symbol}</b> {$trendLabel}\n";
-            $message .= "🏢 {$desc}\n";
-            $message .= "💰 Price: {$price}\n";
-            $message .= "📊 Signal: <b>{$sig}</b> (Score: {$score})\n";
-            $message .= "🎯 Entry: {$entry1} - {$entry2}\n";
-            $message .= "🛑 Stop Loss: {$stopLoss}\n";
-            $message .= "✅ TP1: {$tp1} (+{$tp1p}%)\n";
-            $message .= "✅ TP2: {$tp2} (+{$tp2p}%)\n";
-            $message .= "✅ TP3: {$tp3} (+{$tp3p}%)\n";
-            $message .= "📈 RSI: {$rsi} | MACD: {$macd} | ADX: {$adx}\n";
-            $message .= "📊 Vol Ratio: {$volRatio}x\n";
-            $message .= "⚖️ Risk/Reward: 1:{$rr}\n";
-            if ($divInfo) $message .= "🔍 {$divInfo}\n";
-            if ($srInfo) $message .= "📍 {$srInfo}\n";
+            $message .= "#{$num} {$symbol}\n";
+            $message .= "{$desc}\n";
+            $message .= "Price: {$price}\n";
+            $message .= "Signal: {$sig} (Score: {$score})\n";
+            $message .= "Entry: {$entry1} - {$entry2}\n";
+            $message .= "TP 1: {$tp1} ({$tp1p}%) | TP 2: {$tp2} ({$tp2p}%) | TP 3: {$tp3} ({$tp3p}%)\n";
+            $message .= "SL: {$stopLoss}\n";
             $message .= "==========================================\n\n";
         }
-
-        $message .= "<i>⚠️ Perform additional analysis before entry!</i>";
 
         if ($this->swingThreadID)
         {
@@ -799,7 +757,8 @@ class TradingSignalController extends Controller
                     "low|5",
                     "close|15",
                     "high|15",
-                    "low|15"
+                    "low|15",
+                    "logoid"
                 ],
                 "filter": [
                     { "left": "volume", "operation": "greater", "right": 100000 },
@@ -862,9 +821,12 @@ class TradingSignalController extends Controller
                 $macdLine = $item['d'][16] ?? 0;
                 $prevMACD = $macdLine - 0.1;
 
+                $logo = 'https://s3-symbol-logo.tradingview.com/' . $item['d'][29] . '.svg';
+
                 $results[] = [
                     'name' => $item['d'][0] ?? '',
                     'description' => $item['d'][1] ?? '',
+                    'logoid' => $logo,
                     'close' => $close,
                     'open' => $item['d'][3] ?? 0,
                     'high' => $high,
@@ -936,6 +898,9 @@ class TradingSignalController extends Controller
         {
             $scalpSignal = $this->calculateScalpingSignal($stock);
             $swingSignal = $this->calculateSwingSignal($stock);
+
+            $scalpSignal['logo'] = $stock['logoid'];
+            $swingSignal['logo'] = $stock['logoid'];
 
             $scalpingSignals[] = $scalpSignal;
             $swingSignals[] = $swingSignal;

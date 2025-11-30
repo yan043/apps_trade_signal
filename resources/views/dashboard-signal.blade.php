@@ -144,185 +144,54 @@
 				background: #555;
 			}
 
-			.signal-item {
-				background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-				border: 2px solid transparent;
-				border-left: 5px solid #28a745;
-				padding: 18px;
-				margin-bottom: 18px;
-				border-radius: 12px;
-				transition: all 0.3s ease;
-				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+			.logo {
+				width: 22px;
+				height: 22px;
+				border-radius: 50%;
+				background: #f8f9fa;
+				border: 1px solid #dee2e6;
+				margin-right: 6px;
+				vertical-align: middle;
+				object-fit: contain;
 			}
 
-			.signal-item:hover {
-				background: linear-gradient(135deg, #ffffff 0%, #e0e7ef 100%);
-				box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-				transform: translateX(5px);
-			}
-
-			.signal-item.strong-buy {
-				border-left-color: #dc3545;
-				background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%);
-			}
-
-			.signal-item.strong-buy:hover {
-				background: linear-gradient(135deg, #ffffff 0%, #ffd0d0 100%);
-			}
-
-			.signal-item-header {
+			.symbol-cell {
 				display: flex;
-				justify-content: space-between;
-				align-items: flex-start;
-				margin-bottom: 15px;
-				padding-bottom: 12px;
-				border-bottom: 2px solid rgba(0, 0, 0, 0.1);
-			}
-
-			.signal-symbol {
-				font-size: 1.25rem;
-				font-weight: 700;
-				color: #212529;
-				margin-bottom: 4px;
-			}
-
-			.signal-desc {
-				color: #6c757d;
-				font-size: 0.85rem;
-				font-weight: 500;
-			}
-
-			.signal-badge {
-				display: inline-block;
-				padding: 5px 15px;
-				border-radius: 20px;
-				font-size: 0.75rem;
-				font-weight: 700;
-				text-transform: uppercase;
-				letter-spacing: 0.5px;
-				box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-			}
-
-			.badge-strong-buy {
-				background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-				color: white;
-			}
-
-			.badge-buy {
-				background: linear-gradient(135deg, #28a745 0%, #218838 100%);
-				color: white;
-			}
-
-			.signal-details {
-				display: grid;
-				grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-				gap: 12px;
-			}
-
-			.detail-item {
-				background: rgba(255, 255, 255, 0.8);
-				padding: 10px 12px;
-				border-radius: 8px;
-				border: 1px solid rgba(0, 0, 0, 0.1);
-				transition: all 0.2s ease;
-			}
-
-			.detail-item:hover {
-				background: rgba(255, 255, 255, 1);
-				transform: translateY(-2px);
-				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-			}
-
-			.detail-label {
-				font-size: 0.7rem;
-				color: #6c757d;
-				text-transform: uppercase;
-				letter-spacing: 0.5px;
-				margin-bottom: 4px;
-				font-weight: 600;
-			}
-
-			.detail-value {
-				font-size: 0.95rem;
-				font-weight: 700;
-				color: #212529;
-			}
-
-			.detail-value.price {
-				color: #0d6efd;
-			}
-
-			.detail-value.entry {
-				color: #198754;
-			}
-
-			.detail-value.stop-loss {
-				color: #dc3545;
-			}
-
-			.detail-value.take-profit {
-				color: #fd7e14;
-			}
-
-			.signal-indicators {
-				display: flex;
-				flex-wrap: wrap;
+				align-items: center;
 				gap: 8px;
-				margin-top: 12px;
-				padding-top: 12px;
-				border-top: 1px solid rgba(0, 0, 0, 0.1);
+				font-weight: 600;
 			}
 
-			.indicator-badge {
-				padding: 4px 10px;
-				border-radius: 12px;
-				font-size: 0.7rem;
-				font-weight: 600;
+			.signal-indicator {
 				display: inline-flex;
 				align-items: center;
-				gap: 4px;
+				font-size: 0.65rem;
+				font-weight: 600;
+				padding: 3px 8px;
+				border-radius: 10px;
+				margin-left: 8px;
+				white-space: nowrap;
 			}
 
-			.indicator-badge.market-trending {
-				background: rgba(40, 167, 69, 0.2);
-				color: #28a745;
-				border: 1px solid rgba(40, 167, 69, 0.4);
+			.signal-indicator::before {
+				content: "★";
+				margin-right: 3px;
+				font-size: 0.7rem;
 			}
 
-			.indicator-badge.market-mild {
-				background: rgba(255, 193, 7, 0.2);
-				color: #ffc107;
-				border: 1px solid rgba(255, 193, 7, 0.4);
+			.signal-buy {
+				background-color: #ffc107;
+				color: #212529;
 			}
 
-			.indicator-badge.market-ranging {
-				background: rgba(108, 117, 125, 0.2);
-				color: #6c757d;
-				border: 1px solid rgba(108, 117, 125, 0.4);
+			.signal-strong-buy {
+				background-color: #28a745;
+				color: white;
 			}
 
-			.indicator-badge.divergence-bull {
-				background: rgba(40, 167, 69, 0.2);
-				color: #28a745;
-				border: 1px solid rgba(40, 167, 69, 0.4);
-			}
-
-			.indicator-badge.divergence-bear {
-				background: rgba(220, 53, 69, 0.2);
-				color: #dc3545;
-				border: 1px solid rgba(220, 53, 69, 0.4);
-			}
-
-			.indicator-badge.sr-support {
-				background: rgba(40, 167, 69, 0.2);
-				color: #28a745;
-				border: 1px solid rgba(40, 167, 69, 0.4);
-			}
-
-			.indicator-badge.sr-resistance {
-				background: rgba(220, 53, 69, 0.2);
-				color: #dc3545;
-				border: 1px solid rgba(220, 53, 69, 0.4);
+			.signal-sell {
+				background-color: #6c757d;
+				color: white;
 			}
 
 			.no-signals {
@@ -386,10 +255,6 @@
 			}
 
 			@media (max-width: 768px) {
-				.signal-details {
-					grid-template-columns: 1fr;
-				}
-
 				.signal-body {
 					max-height: 70vh;
 				}
@@ -427,12 +292,26 @@
 								<br><small id="trading-session-scalping" class="badge mt-2"></small>
 							</div>
 						</div>
-						<div class="signal-body" id="scalping-signals-container">
-							<div class="loading-spinner">
-								<div class="spinner-border text-primary" role="status">
-									<span class="visually-hidden">Loading...</span>
-								</div>
-								<p class="mt-3 text-muted fw-bold">Loading scalping signals...</p>
+						<div class="signal-body">
+							<div class="table-responsive">
+								<table id="scalping-table" class="table table-hover align-middle w-100">
+									<thead class="table-light">
+										<tr>
+											<th>Symbol</th>
+											<th>Price</th>
+											<th>Entry</th>
+											<th>TP1</th>
+											<th>TP2</th>
+											<th>TP3</th>
+											<th>SL</th>
+										</tr>
+									</thead>
+									<tbody id="scalping-table-body">
+										<tr>
+											<td colspan="7" class="text-center">Loading scalping signals...</td>
+										</tr>
+									</tbody>
+								</table>
 							</div>
 						</div>
 					</div>
@@ -447,12 +326,26 @@
 								<br><small id="trading-session-swing" class="badge mt-2"></small>
 							</div>
 						</div>
-						<div class="signal-body" id="swing-signals-container">
-							<div class="loading-spinner">
-								<div class="spinner-border text-primary" role="status">
-									<span class="visually-hidden">Loading...</span>
-								</div>
-								<p class="mt-3 text-muted fw-bold">Loading swing signals...</p>
+						<div class="signal-body">
+							<div class="table-responsive">
+								<table id="swing-table" class="table table-hover align-middle w-100">
+									<thead class="table-light">
+										<tr>
+											<th>Symbol</th>
+											<th>Price</th>
+											<th>Entry</th>
+											<th>TP1</th>
+											<th>TP2</th>
+											<th>TP3</th>
+											<th>SL</th>
+										</tr>
+									</thead>
+									<tbody id="swing-table-body">
+										<tr>
+											<td colspan="7" class="text-center">Loading swing signals...</td>
+										</tr>
+									</tbody>
+								</table>
 							</div>
 						</div>
 					</div>
@@ -463,291 +356,136 @@
 			var isMob = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 			function formatNumber(num) {
-				return new Intl.NumberFormat('id-ID').format(num);
+				return new Intl.NumberFormat('id-ID', {
+					minimumFractionDigits: 0,
+					maximumFractionDigits: 0
+				}).format(num);
+			}
+
+			function getSignalClass(signal) {
+				if (signal === 'STRONG BUY') return 'signal-strong-buy';
+				if (signal === 'BUY') return 'signal-buy';
+				return 'signal-sell';
 			}
 
 			function renderScalpingSignals(signals) {
-				const container = $('#scalping-signals-container');
-
-				if (signals.length === 0) {
-					container.html(`
-                    <div class="no-signals">
-                        <svg width="64" height="64" fill="currentColor" class="text-muted" viewBox="0 0 16 16">
-                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                            <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
-                        </svg>
-                        <h5 class="mt-3">No Active Signals</h5>
-                        <p>Waiting for strong BUY signals...</p>
-                    </div>
-                `);
-					return;
+				var tbody = $('#scalping-table-body');
+				if (window.scalpingTable) {
+					window.scalpingTable.clear();
+					if (!signals || signals.length === 0) {
+						window.scalpingTable.draw();
+						return;
+					}
+					signals.forEach(function(signal) {
+						var signalClass = getSignalClass(signal.signal);
+						var symbolCell = '<div class="symbol-cell">' +
+							'<img src="' + signal.logo +
+							'" alt="logo" class="logo" onerror=\'this.style.display="none"\' />' +
+							'<span>' + signal.symbol + '</span>' +
+							'<span class="signal-indicator ' + signalClass + '">' + signal.signal + ' (Score: ' + signal
+							.score + ')</span>' +
+							'</div>';
+						var row = [
+							symbolCell,
+							formatNumber(signal.price),
+							formatNumber(signal.entry1) + ' - ' + formatNumber(signal.entry2),
+							formatNumber(signal.takeProfit1),
+							formatNumber(signal.takeProfit2),
+							formatNumber(signal.takeProfit3),
+							formatNumber(signal.stopLoss)
+						];
+						window.scalpingTable.row.add(row);
+					});
+					window.scalpingTable.draw();
+				} else {
+					tbody.empty();
+					if (!signals || signals.length === 0) {
+						tbody.append('<tr><td colspan="7" class="text-center">No Active Signals</td></tr>');
+						return;
+					}
+					signals.forEach(function(signal) {
+						var signalClass = getSignalClass(signal.signal);
+						var symbolCell = '<div class="symbol-cell">' +
+							'<img src="' + signal.logo +
+							'" alt="logo" class="logo" onerror=\'this.style.display="none"\' />' +
+							'<span>' + signal.symbol + '</span>' +
+							'<span class="signal-indicator ' + signalClass + '">' + signal.signal + ' (Score: ' + signal
+							.score + ')</span>' +
+							'</div>';
+						var row = [
+							symbolCell,
+							formatNumber(signal.price),
+							formatNumber(signal.entry1) + ' - ' + formatNumber(signal.entry2),
+							formatNumber(signal.takeProfit1),
+							formatNumber(signal.takeProfit2),
+							formatNumber(signal.takeProfit3),
+							formatNumber(signal.stopLoss)
+						];
+						tbody.append('<tr><td>' + row.join('</td><td>') + '</td></tr>');
+					});
 				}
-
-				const buySignals = signals.filter(s => s.signal === 'STRONG BUY' || s.signal === 'BUY').slice(0, 10);
-
-				if (buySignals.length === 0) {
-					container.html(`
-                    <div class="no-signals">
-                        <svg width="64" height="64" fill="currentColor" class="text-muted" viewBox="0 0 16 16">
-                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                            <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
-                        </svg>
-                        <h5 class="mt-3">No BUY Signals</h5>
-                        <p>Market conditions not favorable for entry</p>
-                    </div>
-                `);
-					return;
-				}
-
-				let html = '';
-				buySignals.forEach((signal, index) => {
-					const isStrongBuy = signal.signal === 'STRONG BUY';
-					const itemClass = isStrongBuy ? 'signal-item strong-buy' : 'signal-item';
-					const badgeClass = isStrongBuy ? 'badge-strong-buy' : 'badge-buy';
-
-					let marketStateClass = 'market-ranging';
-					let marketStateIcon = '〰️';
-					if (signal.marketState === 'TRENDING') {
-						marketStateClass = 'market-trending';
-						marketStateIcon = '📈';
-					} else if (signal.marketState === 'MILD') {
-						marketStateClass = 'market-mild';
-						marketStateIcon = '📊';
-					}
-
-					let indicatorBadges =
-						`<span class="indicator-badge ${marketStateClass}">${marketStateIcon} ${signal.marketState}</span>`;
-					indicatorBadges +=
-						`<span class="indicator-badge" style="background: rgba(13, 110, 253, 0.2); color: #0d6efd; border: 1px solid rgba(13, 110, 253, 0.4);">📊 Vol: ${signal.volumeRatio}x</span>`;
-
-					if (signal.bullishDivergence) {
-						indicatorBadges += `<span class="indicator-badge divergence-bull">✅ Bullish Div</span>`;
-					}
-					if (signal.bearishDivergence) {
-						indicatorBadges += `<span class="indicator-badge divergence-bear">⚠️ Bearish Div</span>`;
-					}
-					if (signal.nearSupport) {
-						indicatorBadges += `<span class="indicator-badge sr-support">🟢 Near Support</span>`;
-					}
-					if (signal.nearResistance) {
-						indicatorBadges += `<span class="indicator-badge sr-resistance">🔴 Near Resistance</span>`;
-					}
-
-					html += `
-                    <div class="${itemClass}">
-                        <div class="signal-item-header">
-                            <div>
-                                <div class="signal-symbol">#${index + 1} ${signal.symbol}</div>
-                                <div class="signal-desc">${signal.description}</div>
-                            </div>
-                            <span class="signal-badge ${badgeClass}">${signal.signal}</span>
-                        </div>
-                        
-                        <div class="signal-details">
-                            <div class="detail-item">
-                                <div class="detail-label">💰 Current Price</div>
-                                <div class="detail-value price">${formatNumber(signal.price)}</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">🎯 Entry Zone</div>
-                                <div class="detail-value entry">${formatNumber(signal.entry1)} - ${formatNumber(signal.entry2)}</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">🛑 Stop Loss</div>
-                                <div class="detail-value stop-loss">${formatNumber(signal.stopLoss)}</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">✅ Take Profit 1</div>
-                                <div class="detail-value take-profit">${formatNumber(signal.takeProfit1)} <small class="text-muted">(+${signal.takeProfit1_percent}%)</small></div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">✅ Take Profit 2</div>
-                                <div class="detail-value take-profit">${formatNumber(signal.takeProfit2)} <small class="text-muted">(+${signal.takeProfit2_percent}%)</small></div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">✅ Take Profit 3</div>
-                                <div class="detail-value take-profit">${formatNumber(signal.takeProfit3)} <small class="text-muted">(+${signal.takeProfit3_percent}%)</small></div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">📈 RSI</div>
-                                <div class="detail-value">${signal.rsi}</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">📊 MACD</div>
-                                <div class="detail-value">${signal.macd}</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">📊 ADX</div>
-                                <div class="detail-value">${signal.adx}</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">⚖️ Risk/Reward</div>
-                                <div class="detail-value">1:${signal.riskReward}</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">🎯 Score</div>
-                                <div class="detail-value">${signal.score}</div>
-                            </div>
-                        </div>
-                        
-                        <div class="signal-indicators">
-                            ${indicatorBadges}
-                        </div>
-                        
-                        <div class="timestamp">⏰ ${signal.timestamp}</div>
-                    </div>
-                `;
-				});
-
-				container.html(html);
 			}
 
 			function renderSwingSignals(signals) {
-				const container = $('#swing-signals-container');
-
-				if (signals.length === 0) {
-					container.html(`
-                    <div class="no-signals">
-                        <svg width="64" height="64" fill="currentColor" class="text-muted" viewBox="0 0 16 16">
-                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                            <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
-                        </svg>
-                        <h5 class="mt-3">No Active Signals</h5>
-                        <p>Waiting for strong BUY signals...</p>
-                    </div>
-                `);
-					return;
+				var tbody = $('#swing-table-body');
+				if (window.swingTable) {
+					window.swingTable.clear();
+					if (!signals || signals.length === 0) {
+						window.swingTable.draw();
+						return;
+					}
+					signals.forEach(function(signal) {
+						var signalClass = getSignalClass(signal.signal);
+						var symbolCell = '<div class="symbol-cell">' +
+							'<img src="' + signal.logo +
+							'" alt="logo" class="logo" onerror=\'this.style.display="none"\' />' +
+							'<span>' + signal.symbol + '</span>' +
+							'<span class="signal-indicator ' + signalClass + '">' + signal.signal + ' (Score: ' + signal
+							.score + ')</span>' +
+							'</div>';
+						var row = [
+							symbolCell,
+							formatNumber(signal.price),
+							formatNumber(signal.entry1) + ' - ' + formatNumber(signal.entry2),
+							formatNumber(signal.takeProfit1),
+							formatNumber(signal.takeProfit2),
+							formatNumber(signal.takeProfit3),
+							formatNumber(signal.stopLoss)
+						];
+						window.swingTable.row.add(row);
+					});
+					window.swingTable.draw();
+				} else {
+					tbody.empty();
+					if (!signals || signals.length === 0) {
+						tbody.append('<tr><td colspan="7" class="text-center">No Active Signals</td></tr>');
+						return;
+					}
+					signals.forEach(function(signal) {
+						var signalClass = getSignalClass(signal.signal);
+						var symbolCell = '<div class="symbol-cell">' +
+							'<img src="' + signal.logo +
+							'" alt="logo" class="logo" onerror=\'this.style.display="none"\' />' +
+							'<span>' + signal.symbol + '</span>' +
+							'<span class="signal-indicator ' + signalClass + '">' + signal.signal + ' (' + signal.score +
+							')</span>' +
+							'</div>';
+						var row = [
+							symbolCell,
+							formatNumber(signal.price),
+							formatNumber(signal.entry1) + ' - ' + formatNumber(signal.entry2),
+							formatNumber(signal.takeProfit1),
+							formatNumber(signal.takeProfit2),
+							formatNumber(signal.takeProfit3),
+							formatNumber(signal.stopLoss)
+						];
+						tbody.append('<tr><td>' + row.join('</td><td>') + '</td></tr>');
+					});
 				}
-
-				const buySignals = signals.filter(s => s.signal === 'STRONG BUY' || s.signal === 'BUY').slice(0, 10);
-
-				if (buySignals.length === 0) {
-					container.html(`
-                    <div class="no-signals">
-                        <svg width="64" height="64" fill="currentColor" class="text-muted" viewBox="0 0 16 16">
-                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                            <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
-                        </svg>
-                        <h5 class="mt-3">No BUY Signals</h5>
-                        <p>Market conditions not favorable for entry</p>
-                    </div>
-                `);
-					return;
-				}
-
-				let html = '';
-				buySignals.forEach((signal, index) => {
-					const isStrongBuy = signal.signal === 'STRONG BUY';
-					const itemClass = isStrongBuy ? 'signal-item strong-buy' : 'signal-item';
-					const badgeClass = isStrongBuy ? 'badge-strong-buy' : 'badge-buy';
-
-					let trendLabel = '〰️ Neutral';
-					let trendColor = '#6c757d';
-					if (signal.trendStrength == 2) {
-						trendLabel = '🚀 Strong Uptrend';
-						trendColor = '#28a745';
-					} else if (signal.trendStrength == 1) {
-						trendLabel = '📈 Uptrend';
-						trendColor = '#198754';
-					} else if (signal.trendStrength == -1) {
-						trendLabel = '📉 Downtrend';
-						trendColor = '#dc3545';
-					} else if (signal.trendStrength == -2) {
-						trendLabel = '🔻 Strong Downtrend';
-						trendColor = '#c82333';
-					}
-
-					let indicatorBadges =
-						`<span class="indicator-badge" style="background: rgba(${trendColor === '#28a745' || trendColor === '#198754' ? '40, 167, 69' : trendColor === '#6c757d' ? '108, 117, 125' : '220, 53, 69'}, 0.2); color: ${trendColor}; border: 1px solid rgba(${trendColor === '#28a745' || trendColor === '#198754' ? '40, 167, 69' : trendColor === '#6c757d' ? '108, 117, 125' : '220, 53, 69'}, 0.4);">${trendLabel}</span>`;
-					indicatorBadges +=
-						`<span class="indicator-badge" style="background: rgba(13, 110, 253, 0.2); color: #0d6efd; border: 1px solid rgba(13, 110, 253, 0.4);">📊 Vol: ${signal.volumeRatio}x</span>`;
-
-					if (signal.bullishDivergence) {
-						indicatorBadges += `<span class="indicator-badge divergence-bull">✅ Bullish Div</span>`;
-					}
-					if (signal.bearishDivergence) {
-						indicatorBadges += `<span class="indicator-badge divergence-bear">⚠️ Bearish Div</span>`;
-					}
-					if (signal.nearSupport) {
-						indicatorBadges += `<span class="indicator-badge sr-support">🟢 Near Support</span>`;
-					}
-					if (signal.nearResistance) {
-						indicatorBadges += `<span class="indicator-badge sr-resistance">🔴 Near Resistance</span>`;
-					}
-
-					html += `
-                    <div class="${itemClass}">
-                        <div class="signal-item-header">
-                            <div>
-                                <div class="signal-symbol">#${index + 1} ${signal.symbol}</div>
-                                <div class="signal-desc">${signal.description}</div>
-                            </div>
-                            <span class="signal-badge ${badgeClass}">${signal.signal}</span>
-                        </div>
-                        
-                        <div class="signal-details">
-                            <div class="detail-item">
-                                <div class="detail-label">💰 Current Price</div>
-                                <div class="detail-value price">${formatNumber(signal.price)}</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">🎯 Entry Zone</div>
-                                <div class="detail-value entry">${formatNumber(signal.entry1)} - ${formatNumber(signal.entry2)}</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">🛑 Stop Loss</div>
-                                <div class="detail-value stop-loss">${formatNumber(signal.stopLoss)}</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">✅ Take Profit 1</div>
-                                <div class="detail-value take-profit">${formatNumber(signal.takeProfit1)} <small class="text-muted">(+${signal.takeProfit1_percent}%)</small></div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">✅ Take Profit 2</div>
-                                <div class="detail-value take-profit">${formatNumber(signal.takeProfit2)} <small class="text-muted">(+${signal.takeProfit2_percent}%)</small></div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">✅ Take Profit 3</div>
-                                <div class="detail-value take-profit">${formatNumber(signal.takeProfit3)} <small class="text-muted">(+${signal.takeProfit3_percent}%)</small></div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">📈 RSI</div>
-                                <div class="detail-value">${signal.rsi}</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">📊 MACD</div>
-                                <div class="detail-value">${signal.macd}</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">📊 ADX</div>
-                                <div class="detail-value">${signal.adx}</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">⚖️ Risk/Reward</div>
-                                <div class="detail-value">1:${signal.riskReward}</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">🎯 Score</div>
-                                <div class="detail-value">${signal.score}</div>
-                            </div>
-                        </div>
-                        
-                        <div class="signal-indicators">
-                            ${indicatorBadges}
-                        </div>
-                        
-                        <div class="timestamp">⏰ ${signal.timestamp}</div>
-                    </div>
-                `;
-				});
-
-				container.html(html);
 			}
 
 			function loadSignalsRealtime() {
 				$('#refresh-indicator').show();
-				$('#scalping-signals-container, #swing-signals-container').addClass('opacity-50');
-
 				$.ajax({
 					url: '/api/trading-signals',
 					method: 'GET',
@@ -755,17 +493,17 @@
 					success: function(data) {
 						renderScalpingSignals(data.scalping_signals);
 						renderSwingSignals(data.swing_signals);
+						if (window.scalpingTable) window.scalpingTable.draw();
+						if (window.swingTable) window.swingTable.draw();
 						if (data.last_updated) {
 							$("#last-updated #clock").parent().attr('title', 'Last updated: ' + data.last_updated +
 								' WIB');
 						}
 						$('#refresh-indicator').hide();
-						$('#scalping-signals-container, #swing-signals-container').removeClass('opacity-50');
 					},
 					error: function(xhr, status, error) {
 						console.error('Error loading signals:', error);
 						$('#refresh-indicator').hide();
-						$('#scalping-signals-container, #swing-signals-container').removeClass('opacity-50');
 					},
 					complete: function() {
 						setTimeout(loadSignalsRealtime, 5000);
@@ -858,6 +596,46 @@
 			}
 
 			$(document).ready(function() {
+				$('#scalping-table-body').empty();
+				$('#swing-table-body').empty();
+				window.scalpingTable = $('#scalping-table').DataTable({
+					"pageLength": -1,
+					"lengthMenu": [
+						[-1, 10, 25, 50, 100],
+						["All", 10, 25, 50, 100]
+					],
+					"order": [],
+					"language": {
+						"search": "Search:",
+						"lengthMenu": "Show _MENU_ entries",
+						"info": "Showing _START_ to _END_ of _TOTAL_ entries",
+						"paginate": {
+							"first": "First",
+							"last": "Last",
+							"next": "Next",
+							"previous": "Previous"
+						}
+					}
+				});
+				window.swingTable = $('#swing-table').DataTable({
+					"pageLength": -1,
+					"lengthMenu": [
+						[-1, 10, 25, 50, 100],
+						["All", 10, 25, 50, 100]
+					],
+					"order": [],
+					"language": {
+						"search": "Search:",
+						"lengthMenu": "Show _MENU_ entries",
+						"info": "Showing _START_ to _END_ of _TOTAL_ entries",
+						"paginate": {
+							"first": "First",
+							"last": "Last",
+							"next": "Next",
+							"previous": "Previous"
+						}
+					}
+				});
 				loadSignalsRealtime();
 				if (!isMob) {
 					setInterval(showTime, 500);
