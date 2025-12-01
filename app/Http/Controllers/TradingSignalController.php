@@ -20,7 +20,7 @@ class TradingSignalController extends Controller
         $this->chatID = env('TELEGRAM_CHAT_ID');
     }
 
-    public function generateAndSendSignals()
+    public function generateAndSendSignals($type = 'all')
     {
         $stockData = $this->getStockDataWithIndicators();
 
@@ -50,6 +50,32 @@ class TradingSignalController extends Controller
         {
             return $b['score'] - $a['score'];
         });
+
+        if ($type === 'scalping')
+        {
+            if (!empty($scalpingSignals))
+            {
+                $this->sendScalpingSignals($scalpingSignals);
+            }
+            return response()->json([
+                'scalping_signals' => count($scalpingSignals),
+                'swing_signals' => 0,
+                'sent_at' => now()->format('Y-m-d H:i:s')
+            ]);
+        }
+
+        if ($type === 'swing')
+        {
+            if (!empty($swingSignals))
+            {
+                $this->sendSwingSignals($swingSignals);
+            }
+            return response()->json([
+                'scalping_signals' => 0,
+                'swing_signals' => count($swingSignals),
+                'sent_at' => now()->format('Y-m-d H:i:s')
+            ]);
+        }
 
         if (!empty($scalpingSignals))
         {
@@ -614,18 +640,29 @@ class TradingSignalController extends Controller
         foreach ($signals as $index => $signal)
         {
             $sentAt = now()->startOfDay();
-            SignalHistory::updateOrCreate(
-                [
-                    'symbol' => $signal['symbol'],
-                    'signal_type' => 'scalping',
-                    'sent_at' => $sentAt,
-                ],
-                [
-                    'signal' => $signal['signal'],
-                    'signal_price' => $signal['price'],
-                    'extra' => json_encode($signal),
-                ]
-            );
+            $history = SignalHistory::where('symbol', $signal['symbol'])
+                ->where('signal_type', 'scalping')
+                ->where('sent_at', $sentAt)
+                ->first();
+            if (!$history)
+            {
+                $history = new SignalHistory();
+                $history->symbol = $signal['symbol'];
+                $history->signal_type = 'scalping';
+                $history->sent_at = $sentAt;
+                $history->signal = $signal['signal'];
+                $history->signal_price = $signal['price'];
+                $history->close_price = $signal['price'];
+                $history->extra = $signal;
+                $history->save();
+            }
+            else
+            {
+                $history->signal = $signal['signal'];
+                $history->close_price = $signal['price'];
+                $history->extra = $signal;
+                $history->save();
+            }
 
             $num = $index + 1;
             $symbol = $signal['symbol'];
@@ -701,18 +738,29 @@ class TradingSignalController extends Controller
         foreach ($signals as $index => $signal)
         {
             $sentAt = now()->startOfDay();
-            SignalHistory::updateOrCreate(
-                [
-                    'symbol' => $signal['symbol'],
-                    'signal_type' => 'swing',
-                    'sent_at' => $sentAt,
-                ],
-                [
-                    'signal' => $signal['signal'],
-                    'signal_price' => $signal['price'],
-                    'extra' => json_encode($signal),
-                ]
-            );
+            $history = SignalHistory::where('symbol', $signal['symbol'])
+                ->where('signal_type', 'swing')
+                ->where('sent_at', $sentAt)
+                ->first();
+            if (!$history)
+            {
+                $history = new SignalHistory();
+                $history->symbol = $signal['symbol'];
+                $history->signal_type = 'swing';
+                $history->sent_at = $sentAt;
+                $history->signal = $signal['signal'];
+                $history->signal_price = $signal['price'];
+                $history->close_price = $signal['price'];
+                $history->extra = $signal;
+                $history->save();
+            }
+            else
+            {
+                $history->signal = $signal['signal'];
+                $history->close_price = $signal['price'];
+                $history->extra = $signal;
+                $history->save();
+            }
 
             $num = $index + 1;
             $symbol = $signal['symbol'];

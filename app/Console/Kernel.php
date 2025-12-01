@@ -12,10 +12,7 @@ class Kernel extends ConsoleKernel
      *
      * @var array
      */
-    protected $commands = [
-        \App\Console\Commands\EvaluateSignals::class,
-        \App\Console\Commands\SendTradingSignals::class,
-    ];
+    protected $commands = [];
 
     protected function schedule(Schedule $schedule): void
     {
