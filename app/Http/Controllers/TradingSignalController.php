@@ -11,13 +11,15 @@ class TradingSignalController extends Controller
 {
     private $tokenBot;
     private $chatID;
-    private $scalpingThreadID = null;
-    private $swingThreadID = null;
+    private $scalpingThreadID;
+    private $swingThreadID;
 
     public function __construct()
     {
         $this->tokenBot = env('TELEGRAM_BOT_TOKEN');
         $this->chatID = env('TELEGRAM_CHAT_ID');
+        $this->scalpingThreadID = env('TELEGRAM_SCALPING_THREAD_ID');
+        $this->swingThreadID = env('TELEGRAM_SWING_THREAD_ID');
     }
 
     public function generateAndSendSignals($type = 'all')
@@ -713,14 +715,8 @@ class TradingSignalController extends Controller
         {
             $pageHeader = $header . "<b>Page " . ($i + 1) . " of {$totalPages}</b>\n\n";
             $msg = $pageHeader . $content;
-            if ($this->scalpingThreadID)
-            {
-                TelegramModel::sendMessageThread($this->tokenBot, $this->chatID, $this->scalpingThreadID, $msg);
-            }
-            else
-            {
-                TelegramModel::sendMessage($this->tokenBot, $this->chatID, $msg);
-            }
+
+            TelegramModel::sendMessageThread($this->tokenBot, $this->chatID, $this->scalpingThreadID, $msg);
         }
     }
 
@@ -811,14 +807,8 @@ class TradingSignalController extends Controller
         {
             $pageHeader = $header . "<b>Page " . ($i + 1) . " of {$totalPages}</b>\n\n";
             $msg = $pageHeader . $content;
-            if ($this->swingThreadID)
-            {
-                TelegramModel::sendMessageThread($this->tokenBot, $this->chatID, $this->swingThreadID, $msg);
-            }
-            else
-            {
-                TelegramModel::sendMessage($this->tokenBot, $this->chatID, $msg);
-            }
+
+            TelegramModel::sendMessageThread($this->tokenBot, $this->chatID, $this->swingThreadID, $msg);
         }
     }
 
