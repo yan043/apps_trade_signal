@@ -265,8 +265,8 @@
 	<body>
 		<div class="watermark" aria-hidden="true">
 			<div class="watermark-content">
-				<div class="wm-line">Swiss Army Knife Enhanced</div>
 				<div class="wm-line">Data Powered by TradingView</div>
+				<div class="wm-line">Github @yan043</div>
 			</div>
 		</div>
 

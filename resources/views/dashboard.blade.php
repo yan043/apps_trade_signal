@@ -104,6 +104,18 @@
 				border-color: #0a58ca !important;
 			}
 
+			#stock-table {
+				font-size: 0.875rem;
+			}
+
+			#stock-table thead th {
+				font-size: 0.8rem;
+			}
+
+			#stock-table tbody td {
+				font-size: 0.875rem;
+			}
+
 			.card-header .btn-toggle {
 				border: 1px solid #dee2e6;
 				color: #6c757d;
@@ -266,15 +278,14 @@
 											<tr>
 												<th>Stock Symbol</th>
 												<th class="text-center">Price</th>
-												<th class="text-center">Change</th>
 												<th class="text-center">Change %</th>
 												<th class="text-center">Open</th>
 												<th class="text-center">High</th>
 												<th class="text-center">Low</th>
 												<th class="text-center">Volume</th>
-												<th class="text-center">P/E Ratio</th>
-												<th class="text-center">Dividen Yield %</th>
-												<th class="text-center">Analyst Rating</th>
+												<th class="text-center">Target</th>
+												<th class="text-center">Sector</th>
+												<th class="text-center">Industry</th>
 											</tr>
 										</thead>
 										<tbody>
@@ -290,16 +301,6 @@
 														<small class="text-muted">{{ $row['currency'] }}</small>
 													</td>
 													<td
-														class="text-center {{ (float) str_replace(',', '', $row['change']) == 0 ? 'text-muted' : (str_starts_with($row['change'], '-') ? 'value-down' : 'value-up') }}">
-														@if ((float) str_replace(',', '', $row['change']) == 0)
-															{{ number_format((float) str_replace(',', '', $row['change']), 0, ',', '.') }}
-														@elseif(str_starts_with($row['change'], '-'))
-															{{ number_format((float) str_replace(',', '', $row['change']), 0, ',', '.') }}
-														@else
-															+{{ number_format((float) str_replace(',', '', $row['change']), 0, ',', '.') }}
-														@endif
-													</td>
-													<td
 														class="text-center {{ (float) $row['price_change'] == 0 ? 'text-muted' : (str_starts_with($row['price_change'], '-') ? 'value-down' : 'value-up') }}">
 														@if ((float) $row['price_change'] == 0)
 															{{ $row['price_change'] }}%
@@ -309,52 +310,29 @@
 															+{{ $row['price_change'] }}%
 														@endif
 													</td>
-													<td class="text-center">{{ number_format((float) str_replace(',', '', $row['open']), 0, ',', '.') }}</td>
-													<td class="text-center">{{ number_format((float) str_replace(',', '', $row['high']), 0, ',', '.') }}</td>
-													<td class="text-center">{{ number_format((float) str_replace(',', '', $row['low']), 0, ',', '.') }}</td>
-													<td class="text-center">{{ $row['volume'] }}</td>
-													<td class="text-center">{{ $row['price_earnings_ttm'] }}</td>
-													<td class="text-center">{{ $row['div_yield'] }} %</td>
 													<td class="text-center">
-														@php $ar = $row['analystRating'] ?? null; @endphp
-														@if ($ar === 'StrongBuy')
-															<span class="value-up">
-																<span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg
-																		xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18">
-																		<path fill="currentColor"
-																			d="M9 3.3 13.7 8l-.7.7-4-4-4 4-.7-.7L9 3.3Zm0 6 4.7 4.7-.7.7-4-4-4 4-.7-.7L9 9.3Z"></path>
-																	</svg></span>
-																Strong Buy
-															</span>
-														@elseif ($ar === 'Buy')
-															<span class="value-up">
-																<span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg
-																		xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18">
-																		<path fill="currentColor" d="m4.67 10.62.66.76L9 8.16l3.67 3.22.66-.76L9 6.84l-4.33 3.78Z"></path>
-																	</svg></span>
-																Buy
-															</span>
-														@elseif ($ar === 'Sell')
-															<span class="value-down">
-																<span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg
-																		xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18">
-																		<path fill="currentColor" d="m4.67 7.38.66-.76L9 9.84l3.67-3.22.66.76L9 11.16 4.67 7.38Z"></path>
-																	</svg></span>
-																Sell
-															</span>
-														@elseif ($ar === 'StrongSell')
-															<span class="value-down">
-																<span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg
-																		xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18">
-																		<path fill="currentColor"
-																			d="m5 3.3 4 4 4-4 .7.7L9 8.7 4.3 4l.7-.7Zm0 6 4 4 4-4 .7.7L9 14.7 4.3 10l.7-.7Z"></path>
-																	</svg></span>
-																Strong Sell
-															</span>
+														{{ number_format((float) str_replace(',', '', $row['open']), 0, ',', '.') }}
+														<small class="text-muted">{{ $row['currency'] }}</small>
+													</td>
+													<td class="text-center">
+														{{ number_format((float) str_replace(',', '', $row['high']), 0, ',', '.') }}
+														<small class="text-muted">{{ $row['currency'] }}</small>
+													</td>
+													<td class="text-center">
+														{{ number_format((float) str_replace(',', '', $row['low']), 0, ',', '.') }}
+														<small class="text-muted">{{ $row['currency'] }}</small>
+													</td>
+													<td class="text-center">{{ $row['volume'] }}</td>
+													<td class="text-center">
+														@if ($row['target_price'] == 0)
+															-
 														@else
-															<span>{{ $ar }}</span>
+															{{ number_format((float) str_replace(',', '', $row['target_price']), 0, ',', '.') }}
+															<small class="text-muted">{{ $row['currency'] }}</small>
 														@endif
 													</td>
+													<td class="text-center">{{ $row['sector'] }}</td>
+													<td class="text-center">{{ $row['industry'] }}</td>
 												</tr>
 											@empty
 												<tr>
@@ -539,45 +517,52 @@
 						var description = row.description || '';
 						var price = row.price || '';
 						var currency = row.currency || '';
-						var change = (typeof row.change !== 'undefined' && row.change !== null) ? row.change.toString() : '';
-						var price_change = (typeof row.price_change !== 'undefined' && row.price_change !== null) ? row
-							.price_change.toString() : '';
+						var price_change = (typeof row.price_change !== 'undefined' && row.price_change !== null) ? row.price_change.toString() : '';
 						var open = row.open || '';
 						var high = row.high || '';
 						var low = row.low || '';
 						var volume = row.volume || '';
-						var price_earnings_ttm = row.price_earnings_ttm || '';
-						var div_yield = row.div_yield || '';
-						var analystRating = row.analystRating || '';
+						var target_price = row.target_price || 0;
+						var sector = row.sector || '';
+						var industry = row.industry || '';
 
-						var changeClass = change.startsWith('-') ? 'value-down' : 'value-up';
-						var changeDisplay = change.startsWith('-') ? formatNumber(change) : (change !== '' ? '+' +
-							formatNumber(change) : '');
-						var priceChangeClass = price_change.startsWith('-') ? 'value-down' : 'value-up';
-						var priceChangeDisplay = price_change.startsWith('-') ? price_change : (price_change !== '' ? '+' +
-							price_change : '');
-						var analystRatingHtml = getAnalystRatingHtml(analystRating);
+						var priceChangeClass = price_change.startsWith('-') ? 'value-down' : ((price_change === '' || parseFloat(price_change) === 0) ? 'text-muted' : 'value-up');
+						var priceChangeDisplay;
+						if (price_change === '' || isNaN(parseFloat(price_change))) {
+							priceChangeDisplay = '';
+						} else if (price_change.startsWith('-')) {
+							priceChangeDisplay = price_change + '%';
+						} else if (parseFloat(price_change) === 0) {
+							priceChangeDisplay = price_change + '%';
+						} else {
+							priceChangeDisplay = '+' + price_change + '%';
+						}
+
+						var targetDisplay;
+						if (target_price === 0 || target_price === '0' || target_price === null || target_price === '') {
+							targetDisplay = '-';
+						} else {
+							targetDisplay = formatNumber(target_price) + ' <small class="text-muted">' + currency + '</small>';
+						}
 
 						var rowArr = [
-							'<div class="symbol-cell"><img src="' + logo + '" alt="logo" class="logo" /><span>' + name +
-							'</span><small class="text-muted">' + description + '</small></div>',
+							'<div class="symbol-cell"><img src="' + logo + '" alt="logo" class="logo" /><span>' + name + '</span><small class="text-muted">' + description + '</small></div>',
 							formatNumber(price) + ' <small class="text-muted">' + currency + '</small>',
-							'<span class="' + changeClass + '">' + changeDisplay + '</span>',
-							'<span class="' + priceChangeClass + '">' + priceChangeDisplay + '%</span>',
-							formatNumber(open),
-							formatNumber(high),
-							formatNumber(low),
+							'<span class="' + priceChangeClass + '">' + priceChangeDisplay + '</span>',
+							formatNumber(open) + ' <small class="text-muted">' + currency + '</small>',
+							formatNumber(high) + ' <small class="text-muted">' + currency + '</small>',
+							formatNumber(low) + ' <small class="text-muted">' + currency + '</small>',
 							volume,
-							price_earnings_ttm,
-							div_yield + ' %',
-							analystRatingHtml
+							targetDisplay,
+							sector,
+							industry
 						];
 
-						while (rowArr.length < 11) {
-							rowArr.push('');
+						if (rowArr.length > 10) {
+							rowArr = rowArr.slice(0, 10);
 						}
-						if (rowArr.length > 11) {
-							rowArr = rowArr.slice(0, 11);
+						while (rowArr.length < 10) {
+							rowArr.push('');
 						}
 
 						stockTable.row.add(rowArr);

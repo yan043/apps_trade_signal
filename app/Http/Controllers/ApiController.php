@@ -36,113 +36,96 @@ class ApiController extends Controller
             CURLOPT_HEADER => false,
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS => '{
-                "columns": [
-                    "name",
-                    "description",
-                    "logoid",
-                    "update_mode",
-                    "type",
-                    "typespecs",
-                    "close",
-                    "pricescale",
-                    "minmov",
-                    "fractional",
-                    "minmove2",
-                    "currency",
-                    "change_abs",
-                    "change",
-                    "open",
-                    "high",
-                    "low",
-                    "volume",
-                    "price_earnings_ttm",
-                    "dividends_yield",
-                    "AnalystRating",
-                    "AnalystRating.tr",
-                    "EMA9",
-                    "EMA21",
-                    "EMA50",
-                    "EMA200",
-                    "RSI",
-                    "VWAP",
-                    "ATR",
-                    "BB.upper",
-                    "SMA20",
-                    "MACD.macd",
-                    "MACD.signal",
-                    "ADX",
-                    "Stoch.K_14_1_3",
-                    "sector",
-                    "exchange"
-                ],
-                "filter": [
-                    { "left": "is_primary", "operation": "equal", "right": true }
-                ],
-                "ignore_unknown_fields": false,
-                "options": { "lang": "en" },
-                "range": [0, 1000],
-                "sort": { "sortBy": "change", "sortOrder": "desc" },
-                "symbols": {},
-                "markets": ["indonesia"],
-                "filter2": {
-                    "operator": "and",
-                    "operands": [
-                        {
-                            "operation": {
-                                "operator": "or",
-                                "operands": [
-                                    {
-                                        "operation": {
-                                            "operator": "and",
-                                            "operands": [
-                                                { "expression": { "left": "type", "operation": "equal", "right": "stock" } },
-                                                { "expression": { "left": "typespecs", "operation": "has", "right": ["common"] } }
-                                            ]
-                                        }
-                                    },
-                                    {
-                                        "operation": {
-                                            "operator": "and",
-                                            "operands": [
-                                                { "expression": { "left": "type", "operation": "equal", "right": "stock" } },
-                                                {
-                                                    "expression": {
-                                                        "left": "typespecs",
-                                                        "operation": "has",
-                                                        "right": ["preferred"]
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    },
-                                    {
-                                        "operation": {
-                                            "operator": "and",
-                                            "operands": [{ "expression": { "left": "type", "operation": "equal", "right": "dr" } }]
-                                        }
-                                    },
-                                    {
-                                        "operation": {
-                                            "operator": "and",
-                                            "operands": [
-                                                { "expression": { "left": "type", "operation": "equal", "right": "fund" } },
-                                                {
-                                                    "expression": {
-                                                        "left": "typespecs",
-                                                        "operation": "has_none_of",
-                                                        "right": ["etf"]
-                                                    }
-                                                }
-                                            ]
-                                        }
+            "columns": [
+                "ticker-view",
+                "close",
+                "type",
+                "typespecs",
+                "pricescale",
+                "minmov",
+                "fractional",
+                "minmove2",
+                "currency",
+                "change_abs",
+                "change",
+                "open",
+                "high",
+                "low",
+                "volume",
+                "price_target_1y",
+                "sector.tr",
+                "market",
+                "sector",
+                "industry.tr",
+                "industry"
+            ],
+            "filter": [{ "left": "is_primary", "operation": "equal", "right": true }],
+            "ignore_unknown_fields": false,
+            "options": { "lang": "id_ID" },
+            "range": [0, 100],
+            "sort": { "sortBy": "change", "sortOrder": "desc" },
+            "symbols": {},
+            "markets": ["indonesia"],
+            "filter2": {
+                "operator": "and",
+                "operands": [
+                    {
+                        "operation": {
+                            "operator": "or",
+                            "operands": [
+                                {
+                                    "operation": {
+                                        "operator": "and",
+                                        "operands": [
+                                            { "expression": { "left": "type", "operation": "equal", "right": "stock" } },
+                                            { "expression": { "left": "typespecs", "operation": "has", "right": ["common"] } }
+                                        ]
                                     }
-                                ]
-                            }
-                        },
-                        { "expression": { "left": "typespecs", "operation": "has_none_of", "right": ["pre-ipo"] } }
-                    ]
-                }
-            }',
+                                },
+                                {
+                                    "operation": {
+                                        "operator": "and",
+                                        "operands": [
+                                            { "expression": { "left": "type", "operation": "equal", "right": "stock" } },
+                                            {
+                                                "expression": {
+                                                    "left": "typespecs",
+                                                    "operation": "has",
+                                                    "right": ["preferred"]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "operation": {
+                                        "operator": "and",
+                                        "operands": [{ "expression": { "left": "type", "operation": "equal", "right": "dr" } }]
+                                    }
+                                },
+                                {
+                                    "operation": {
+                                        "operator": "and",
+                                        "operands": [
+                                            { "expression": { "left": "type", "operation": "equal", "right": "fund" } },
+                                            {
+                                                "expression": {
+                                                    "left": "typespecs",
+                                                    "operation": "has_none_of",
+                                                    "right": ["etf"]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    { "expression": { "left": "typespecs", "operation": "has_none_of", "right": ["pre-ipo"] } }
+                ]
+            }
+        }
+        ',
             CURLOPT_HTTPHEADER => array(
                 'Content-Type: application/json'
             ),
@@ -156,69 +139,68 @@ class ApiController extends Controller
 
         foreach ($data['data'] as $item)
         {
-            $logo = 'https://s3-symbol-logo.tradingview.com/' . $item['d'][2] . '.svg';
+            $logo = 'https://s3-symbol-logo.tradingview.com/' . $item['d'][0]['logoid'] . '.svg';
 
-            $name = $item['d'][0];
+            $name = $item['d'][0]['name'];
 
-            $description = $item['d'][1];
+            $description = $item['d'][0]['description'];
 
-            $price = rtrim(rtrim(number_format($item['d'][6], 2, '.', ''), '0'), '.');
+            $price = rtrim(rtrim(number_format($item['d'][12], 2, '.', ''), '0'), '.');
 
-            $currency = $item['d'][11];
+            $currency = $item['d'][8];
 
-            $change = rtrim(rtrim(number_format($item['d'][12], 2, '.', ''), '0'), '.');
+            $change = rtrim(rtrim(number_format($item['d'][9], 2, '.', ''), '0'), '.');
 
-            $price_change = rtrim(rtrim(number_format($item['d'][13], 2, '.', ''), '0'), '.');
+            $price_change = rtrim(rtrim(number_format($item['d'][10], 2, '.', ''), '0'), '.');
 
-            $open = rtrim(rtrim(number_format($item['d'][14], 2, '.', ''), '0'), '.');
+            $open = rtrim(rtrim(number_format($item['d'][11], 2, '.', ''), '0'), '.');
 
-            $high = rtrim(rtrim(number_format($item['d'][15], 2, '.', ''), '0'), '.');
+            $high = rtrim(rtrim(number_format($item['d'][12], 2, '.', ''), '0'), '.');
 
-            $low = rtrim(rtrim(number_format($item['d'][16], 2, '.', ''), '0'), '.');
+            $low = rtrim(rtrim(number_format($item['d'][13], 2, '.', ''), '0'), '.');
 
-            if ($item['d'][17] >= 1000000000000)
+            if ($item['d'][14] >= 1000000000000)
             {
-                $volume = number_format($item['d'][17] / 1000000000000, 2) . ' T';
+                $volume = number_format($item['d'][14] / 1000000000000, 2) . ' T';
             }
-            elseif ($item['d'][17] >= 1000000000)
+            elseif ($item['d'][14] >= 1000000000)
             {
-                $volume = number_format($item['d'][17] / 1000000000, 2) . ' B';
+                $volume = number_format($item['d'][14] / 1000000000, 2) . ' B';
             }
-            elseif ($item['d'][17] >= 1000000)
+            elseif ($item['d'][14] >= 1000000)
             {
-                $volume = number_format($item['d'][17] / 1000000, 2) . ' M';
+                $volume = number_format($item['d'][14] / 1000000, 2) . ' M';
             }
-            elseif ($item['d'][17] >= 1000)
+            elseif ($item['d'][14] >= 1000)
             {
-                $volume = number_format($item['d'][17] / 1000, 2) . ' K';
+                $volume = number_format($item['d'][14] / 1000, 2) . ' K';
             }
             else
             {
-                $volume = number_format($item['d'][17], 2);
+                $volume = number_format($item['d'][14], 2);
             }
 
-            $price_earnings_ttm = rtrim(rtrim(number_format($item['d'][18], 2, '.', ''), '0'), '.');
+            $target_price = rtrim(rtrim(number_format($item['d'][15], 2, '.', ''), '0'), '.');
 
-            $div_yield = rtrim(rtrim(number_format($item['d'][19], 2, '.', ''), '0'), '.');
+            $sector = $item['d'][16] ?? '-';
 
-            $analystRating = $item['d'][20];
-
-            $sector = $item['d'][35] ?? '-';
+            $industry = $item['d'][19] ?? '-';
 
             $results[] = [
-                'logo'               => $logo,
-                'name'               => $name,
-                'description'        => $description,
-                'price'              => $price,
-                'currency'           => $currency,
-                'change'             => $change,
-                'price_change'       => $price_change,
-                'open'               => $open,
-                'high'               => $high,
-                'low'                => $low,
-                'volume'             => $volume,
-                'sector'             => $sector,
-                'target_price'       => '-',
+                'logo'         => $logo,
+                'name'         => $name,
+                'description'  => $description,
+                'price'        => $price,
+                'currency'     => $currency,
+                'change'       => $change,
+                'price_change' => $price_change,
+                'open'         => $open,
+                'high'         => $high,
+                'low'          => $low,
+                'volume'       => $volume,
+                'target_price' => $target_price,
+                'sector'       => $sector,
+                'industry'     => $industry,
             ];
         }
 
