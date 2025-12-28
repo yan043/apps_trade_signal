@@ -103,7 +103,7 @@ class EvaluateSignals extends Command
         {
             $pageHeader = $header . "<b>Page " . ($i + 1) . " of {$totalPages}</b>\n\n";
             $msg = $pageHeader . $content;
-            TelegramModel::sendMessageThread(env('TELEGRAM_BOT_TOKEN'), env('TELEGRAM_CHAT_ID'), env('TELEGRAM_THREAD_ID'), $msg);
+            TelegramModel::sendMessageThread(config('services.telegram.bot_token'), config('services.telegram.chat_id'), config('services.telegram.thread_id'), $msg);
         }
 
         DB::table('signal_histories')->truncate();

@@ -70,6 +70,7 @@ class DashboardController extends Controller
                     "MACD.signal",
                     "ADX",
                     "Stoch.K_14_1_3",
+                    "sector",
                     "exchange"
                 ],
                 "filter": [
@@ -200,6 +201,8 @@ class DashboardController extends Controller
 
             $analystRating = $item['d'][20];
 
+            $sector = $item['d'][35] ?? '-';
+
             $results[] = [
                 'logo'               => $logo,
                 'name'               => $name,
@@ -212,9 +215,8 @@ class DashboardController extends Controller
                 'high'               => $high,
                 'low'                => $low,
                 'volume'             => $volume,
-                'price_earnings_ttm' => $price_earnings_ttm,
-                'div_yield'          => $div_yield,
-                'analystRating'      => $analystRating,
+                'sector'             => $sector,
+                'target_price'       => '-',
             ];
         }
 
