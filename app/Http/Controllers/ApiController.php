@@ -62,7 +62,7 @@ class ApiController extends Controller
             "filter": [{ "left": "is_primary", "operation": "equal", "right": true }],
             "ignore_unknown_fields": false,
             "options": { "lang": "id_ID" },
-            "range": [0, 100],
+            "range": [0, 1000],
             "sort": { "sortBy": "change", "sortOrder": "desc" },
             "symbols": {},
             "markets": ["indonesia"],
