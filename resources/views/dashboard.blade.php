@@ -495,14 +495,26 @@
 					}
 				}
 
+				function esc(value) {
+					return String(value === null || value === undefined ? '' : value).replace(/[&<>"']/g, function(ch) {
+						return {
+							'&': '&amp;',
+							'<': '&lt;',
+							'>': '&gt;',
+							'"': '&quot;',
+							"'": '&#39;'
+						}[ch];
+					});
+				}
+
 				function formatNumber(number) {
 					if (number === null || number === undefined || number === '') {
-						return number;
+						return esc(number);
 					}
 					let numStr = number.toString().replace(/[^\d.-]/g, '');
 					let num = parseFloat(numStr);
 					if (isNaN(num)) {
-						return number;
+						return esc(number);
 					}
 					return num.toLocaleString('id-ID').replace(/,/g, '.');
 				}
@@ -531,31 +543,31 @@
 						if (price_change === '' || isNaN(parseFloat(price_change))) {
 							priceChangeDisplay = '';
 						} else if (price_change.startsWith('-')) {
-							priceChangeDisplay = price_change + '%';
+							priceChangeDisplay = esc(price_change) + '%';
 						} else if (parseFloat(price_change) === 0) {
-							priceChangeDisplay = price_change + '%';
+							priceChangeDisplay = esc(price_change) + '%';
 						} else {
-							priceChangeDisplay = '+' + price_change + '%';
+							priceChangeDisplay = '+' + esc(price_change) + '%';
 						}
 
 						var targetDisplay;
 						if (target_price === 0 || target_price === '0' || target_price === null || target_price === '') {
 							targetDisplay = '-';
 						} else {
-							targetDisplay = formatNumber(target_price) + ' <small class="text-muted">' + currency + '</small>';
+							targetDisplay = formatNumber(target_price) + ' <small class="text-muted">' + esc(currency) + '</small>';
 						}
 
 						var rowArr = [
-							'<div class="symbol-cell"><img src="' + logo + '" alt="logo" class="logo" /><span>' + name + '</span><small class="text-muted">' + description + '</small></div>',
-							formatNumber(price) + ' <small class="text-muted">' + currency + '</small>',
+							'<div class="symbol-cell"><img src="' + esc(logo) + '" alt="logo" class="logo" /><span>' + esc(name) + '</span><small class="text-muted">' + esc(description) + '</small></div>',
+							formatNumber(price) + ' <small class="text-muted">' + esc(currency) + '</small>',
 							'<span class="' + priceChangeClass + '">' + priceChangeDisplay + '</span>',
-							formatNumber(open) + ' <small class="text-muted">' + currency + '</small>',
-							formatNumber(high) + ' <small class="text-muted">' + currency + '</small>',
-							formatNumber(low) + ' <small class="text-muted">' + currency + '</small>',
-							volume,
+							formatNumber(open) + ' <small class="text-muted">' + esc(currency) + '</small>',
+							formatNumber(high) + ' <small class="text-muted">' + esc(currency) + '</small>',
+							formatNumber(low) + ' <small class="text-muted">' + esc(currency) + '</small>',
+							esc(volume),
 							targetDisplay,
-							sector,
-							industry
+							esc(sector),
+							esc(industry)
 						];
 
 						if (rowArr.length > 10) {
@@ -581,7 +593,7 @@
 					} else if (rating === 'StrongSell') {
 						return '<span class="value-down"><span role="img" class="ratingIcon-ibwgrGVw" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><path fill="currentColor" d="m5 3.3 4 4 4-4 .7.7L9 8.7 4.3 4l.7-.7Zm0 6 4 4 4-4 .7.7L9 14.7 4.3 10l.7-.7Z"></path></svg></span>Strong Sell</span>';
 					}
-					return '<span>' + rating + '</span>';
+					return '<span>' + esc(rating) + '</span>';
 				}
 
 				if (isMob == false) {

@@ -43,4 +43,8 @@ return [
         'swing_thread_id'    => env('TELEGRAM_SWING_THREAD_ID'),
     ],
 
+    'signal' => [
+        'trigger_key' => env('SIGNAL_TRIGGER_KEY'),
+    ],
+
 ];

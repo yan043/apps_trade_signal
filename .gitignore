@@ -1,3 +1,5 @@
+.claude/
+.github/
 /vendor/
 /node_modules/
 /composer.lock
@@ -15,7 +17,7 @@
 storage/
 !storage/app/public/
 public/storage
-public/upload_*
+public/upload*
 bootstrap/cache/
 storage/*.key
 storage/pail

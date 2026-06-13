@@ -10,4 +10,5 @@ Route::get('/dashboard-signal', [DashboardController::class, 'signal'])->name('d
 
 Route::get('/api/stock-data', [ApiController::class, 'stock_data'])->name('api.stock-data');
 Route::get('/api/trading-signals', [TradingSignalController::class, 'getAllSignals'])->name('api.trading-signals');
-Route::get('/api/send-signals', [TradingSignalController::class, 'generateAndSendSignals'])->name('api.send-signals');
+Route::get('/api/signal-performance', [TradingSignalController::class, 'getPerformance'])->name('api.signal-performance');
+Route::post('/api/send-signals', [TradingSignalController::class, 'generateAndSendSignals'])->middleware('throttle:10,1')->name('api.send-signals');

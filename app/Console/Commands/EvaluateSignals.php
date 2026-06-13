@@ -3,113 +3,104 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Models\SignalHistory;
 use App\Models\TelegramModel;
-use Illuminate\Support\Facades\Http;
+use App\Services\SignalPerformanceService;
 
 class EvaluateSignals extends Command
 {
     protected $signature = 'trading:evaluate-signals';
-    protected $description = 'Evaluasi hasil sinyal trading setelah market tutup';
+    protected $description = 'Lacak hasil sinyal (TP/SL) dan laporkan win-rate setelah market tutup';
 
-    public function handle()
+    public function handle(SignalPerformanceService $performance)
     {
-        $today = now('Asia/Jakarta')->startOfDay();
-        $signals = SignalHistory::where('sent_at', $today)->get();
+        $justClosed = $performance->updateOpenPositions();
+        $metrics = $performance->metrics();
 
-        if ($signals->isEmpty())
-        {
-            $this->info('Tidak ada sinyal yang perlu dievaluasi.');
-            return 0;
-        }
+        $report = $this->buildReport($justClosed, $metrics);
 
-        $header = "<b>EVALUASI SINYAL TRADING</b>\n";
-        $header .= "Date: " . now('Asia/Jakarta')->format('d M Y') . "\n";
-        $header .= "==========================================\n\n";
+        $this->sendReport($report);
+        $this->info(strip_tags($report));
 
-        $bodies = [];
-        foreach ($signals as $signal)
-        {
-            $symbol = $signal->symbol;
-            $close = $signal->close_price;
-            $percent = $signal->signal_price > 0 && $close !== null ? round((($close - $signal->signal_price) / $signal->signal_price) * 100, 2) : null;
-            $signal->percent_change = $percent;
-            $signal->save();
-
-            $extra = $signal->extra;
-            $desc = is_array($extra) ? ($extra['description'] ?? '') : '';
-            $signalType = $signal->signal;
-            $score = is_array($extra) ? ($extra['score'] ?? 0) : 0;
-            $entry1 = is_array($extra) ? number_format($extra['entry1'] ?? 0, 0, ',', '.') : '';
-            $entry2 = is_array($extra) ? number_format($extra['entry2'] ?? 0, 0, ',', '.') : '';
-            $tp1 = is_array($extra) ? number_format($extra['takeProfit1'] ?? 0, 0, ',', '.') : '';
-            $tp2 = is_array($extra) ? number_format($extra['takeProfit2'] ?? 0, 0, ',', '.') : '';
-            $tp3 = is_array($extra) ? number_format($extra['takeProfit3'] ?? 0, 0, ',', '.') : '';
-            $tp1p = is_array($extra) ? ($extra['takeProfit1_percent'] ?? 0) : 0;
-            $tp2p = is_array($extra) ? ($extra['takeProfit2_percent'] ?? 0) : 0;
-            $tp3p = is_array($extra) ? ($extra['takeProfit3_percent'] ?? 0) : 0;
-            $sl = is_array($extra) ? number_format($extra['stopLoss'] ?? 0, 0, ',', '.') : '';
-
-            $changeStr = '';
-            if ($percent !== null)
-            {
-                if ($percent > 0)
-                {
-                    $changeStr = "+{$percent}%";
-                }
-                elseif ($percent < 0)
-                {
-                    $changeStr = "{$percent}%";
-                }
-                else
-                {
-                    $changeStr = "0%";
-                }
-            }
-
-            $body = "#{$symbol}\n";
-            $body .= "{$desc}\n";
-            $body .= "Type: " . strtoupper($signal->signal_type) . "\n";
-            $body .= "Signal: {$signalType} (Score: {$score})\n";
-            $body .= "Entry Price: " . number_format($signal->signal_price, 0, ',', '.') . "\n";
-            $body .= "Close Price: " . number_format($close, 0, ',', '.') . "\n";
-            $body .= "Change: {$changeStr}\n";
-            $body .= "Entry: {$entry1} - {$entry2}\n";
-            $body .= "TP 1: {$tp1} ({$tp1p}%) | TP 2: {$tp2} ({$tp2p}%) | TP 3: {$tp3} ({$tp3p}%)\n";
-            $body .= "SL: {$sl}\n";
-            $body .= "==========================================\n\n";
-            $bodies[] = $body;
-        }
-
-        $maxLen = 4000;
-        $pages = [];
-        $current = '';
-        foreach ($bodies as $body)
-        {
-            if (strlen($header . $current . $body) > $maxLen && $current !== '')
-            {
-                $pages[] = $current;
-                $current = '';
-            }
-            $current .= $body;
-        }
-        if ($current !== '')
-        {
-            $pages[] = $current;
-        }
-
-        $totalPages = count($pages);
-        foreach ($pages as $i => $content)
-        {
-            $pageHeader = $header . "<b>Page " . ($i + 1) . " of {$totalPages}</b>\n\n";
-            $msg = $pageHeader . $content;
-            TelegramModel::sendMessageThread(config('services.telegram.bot_token'), config('services.telegram.chat_id'), config('services.telegram.thread_id'), $msg);
-        }
-
-        DB::table('signal_histories')->truncate();
-
-        $fullReport = $header . implode('', $bodies);
-        $this->info($fullReport);
         return 0;
+    }
+
+    private function buildReport(array $justClosed, array $metrics): string
+    {
+        $report = "<b>EVALUASI & PERFORMA SINYAL</b>\n";
+        $report .= "Date: " . now('Asia/Jakarta')->format('d M Y') . "\n";
+        $report .= "==========================================\n\n";
+
+        $report .= "<b>POSISI DITUTUP HARI INI (" . count($justClosed) . ")</b>\n";
+
+        if (empty($justClosed))
+        {
+            $report .= "Tidak ada posisi yang ditutup.\n";
+        }
+        else
+        {
+            foreach ($justClosed as $position)
+            {
+                $symbol = htmlspecialchars($position->symbol, ENT_QUOTES, 'UTF-8');
+                $exit = $this->statusLabel($position->status);
+                $realizedR = $position->realized_r >= 0 ? "+{$position->realized_r}R" : "{$position->realized_r}R";
+                $percent = $position->percent_change >= 0 ? "+{$position->percent_change}%" : "{$position->percent_change}%";
+
+                $report .= "#{$symbol} [" . strtoupper($position->signal_type) . "] {$exit} {$realizedR} ({$percent})\n";
+            }
+        }
+
+        $report .= "\n<b>PERFORMA KESELURUHAN</b>\n";
+        $report .= $this->metricsBlock('SCALPING', $metrics['scalping']);
+        $report .= $this->metricsBlock('SWING', $metrics['swing']);
+        $report .= "Posisi masih terbuka: {$metrics['open_positions']}\n";
+
+        return $report;
+    }
+
+    private function metricsBlock(string $title, array $stats): string
+    {
+        if ($stats['total'] === 0)
+        {
+            return "\n{$title}: belum ada data tertutup\n";
+        }
+
+        $block = "\n<b>{$title}</b> ({$stats['total']} sinyal selesai)\n";
+        $block .= "Win-rate: {$stats['win_rate']}% | Expectancy: {$stats['expectancy']}R\n";
+        $block .= "TP1+: {$stats['tp1_rate']}% | TP2+: {$stats['tp2_rate']}% | TP3: {$stats['tp3_rate']}% | SL: {$stats['sl_rate']}%\n";
+
+        return $block;
+    }
+
+    private function statusLabel(string $status): string
+    {
+        $labels = [
+            'tp1' => 'TP1 kena',
+            'tp2' => 'TP2 kena',
+            'tp3' => 'TP3 kena',
+            'sl' => 'SL kena',
+            'closed' => 'Tutup (time-stop)',
+            'expired' => 'Tutup (max hold)',
+        ];
+
+        return $labels[$status] ?? $status;
+    }
+
+    private function sendReport(string $report): void
+    {
+        $tokenBot = config('services.telegram.bot_token');
+        $chatID = config('services.telegram.chat_id');
+        $threadID = config('services.telegram.thread_id');
+
+        if (empty($tokenBot) || empty($chatID))
+        {
+            return;
+        }
+
+        $maxLength = 4000;
+
+        foreach (str_split($report, $maxLength) as $chunk)
+        {
+            TelegramModel::sendMessageThread($tokenBot, $chatID, $threadID, $chunk);
+        }
     }
 }
