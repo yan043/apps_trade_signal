@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('send:scalping-signals')->weekdays()->timezone('Asia/Jakarta')->hourly()->between('09:00', '16:00');
         $schedule->command('send:swing-signals')->weekdays()->timezone('Asia/Jakarta')->dailyAt('16:35');
         $schedule->command('trading:evaluate-signals')->weekdays()->timezone('Asia/Jakarta')->dailyAt('17:00');
+        $schedule->command('send:market-news')->weekdays()->timezone('Asia/Jakarta')->twiceDaily(8, 16);
     })
     ->withMiddleware(function (Middleware $middleware): void
     {
