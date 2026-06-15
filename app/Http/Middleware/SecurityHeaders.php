@@ -14,11 +14,11 @@ class SecurityHeaders
 
         $contentSecurityPolicy = implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://cdn.datatables.net",
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://cdn.datatables.net https://static.cloudflareinsights.com",
             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.datatables.net https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net",
             "img-src 'self' data: https://s3-symbol-logo.tradingview.com",
-            "connect-src 'self'",
+            "connect-src 'self' https://cdn.jsdelivr.net https://cloudflareinsights.com",
             "frame-ancestors 'none'",
         ]);
 
