@@ -41,7 +41,7 @@ class TradingSignalController extends Controller
             {
                 $signal = $this->engine->scalpingSignal($stock);
 
-                if ($signal !== null && $signal['signal'] === 'STRONG BUY')
+                if ($signal !== null && $this->isBuySignal($signal['signal']))
                 {
                     $scalpingSignals[] = $signal;
                 }
@@ -51,7 +51,7 @@ class TradingSignalController extends Controller
             {
                 $signal = $this->engine->swingSignal($stock);
 
-                if ($signal !== null && $signal['signal'] === 'STRONG BUY')
+                if ($signal !== null && $this->isBuySignal($signal['signal']))
                 {
                     $swingSignals[] = $signal;
                 }
@@ -130,6 +130,11 @@ class TradingSignalController extends Controller
         }
 
         return hash_equals($configuredKey, (string) request()->header('X-Trigger-Key'));
+    }
+
+    private function isBuySignal(string $signal): bool
+    {
+        return $signal === 'STRONG BUY' || $signal === 'BUY';
     }
 
     private function sortByScore(array &$signals): void

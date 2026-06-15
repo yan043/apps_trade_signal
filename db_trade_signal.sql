@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Jun 13, 2026 at 03:43 PM
+-- Generation Time: Jun 15, 2026 at 06:24 PM
 -- Server version: 10.6.27-MariaDB
 -- PHP Version: 8.4.21
 
@@ -69,9 +69,21 @@ CREATE TABLE `signal_histories` (
   `signal_type` enum('scalping','swing') NOT NULL,
   `signal` varchar(255) NOT NULL,
   `signal_price` double NOT NULL,
+  `entry_price` double DEFAULT NULL,
   `close_price` double DEFAULT NULL,
+  `stop_loss` double DEFAULT NULL,
+  `take_profit_1` double DEFAULT NULL,
+  `take_profit_2` double DEFAULT NULL,
+  `take_profit_3` double DEFAULT NULL,
+  `highest_high` double DEFAULT NULL,
+  `lowest_low` double DEFAULT NULL,
+  `status` varchar(255) NOT NULL DEFAULT 'open',
+  `outcome` varchar(255) DEFAULT NULL,
+  `realized_r` double DEFAULT NULL,
+  `days_held` int(11) NOT NULL DEFAULT 0,
+  `closed_at` timestamp NULL DEFAULT NULL,
   `percent_change` double DEFAULT NULL,
-  `sent_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `sent_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `extra` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`extra`)),
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
