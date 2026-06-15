@@ -63,15 +63,40 @@ class MarketNewsService
                 continue;
             }
 
+            $summary = $this->extractSummary((string) $item->description);
+
             $items[] = [
                 'title'     => $title,
+                'summary'   => $summary,
                 'link'      => trim((string) $item->link),
                 'source'    => $source,
-                'sentiment' => $this->classify($title),
+                'sentiment' => $this->classify($title . ' ' . $summary),
             ];
         }
 
         return $items;
+    }
+
+    private function extractSummary(string $description, int $maxLength = 160): string
+    {
+        $text = preg_replace('/<[^>]+>/', ' ', $description);
+        $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
+        $text = trim(preg_replace('/\s+/', ' ', $text));
+
+        if (mb_strlen($text) <= $maxLength)
+        {
+            return $text;
+        }
+
+        $cut = mb_substr($text, 0, $maxLength);
+        $lastSpace = mb_strrpos($cut, ' ');
+
+        if ($lastSpace !== false)
+        {
+            $cut = mb_substr($cut, 0, $lastSpace);
+        }
+
+        return $cut . '…';
     }
 
     private function classify(string $title): string
@@ -135,6 +160,14 @@ class MarketNewsService
             $link = htmlspecialchars($headline['link'], ENT_QUOTES, 'UTF-8');
 
             $section .= "{$number}. <a href=\"{$link}\">{$text}</a>\n";
+
+            if (!empty($headline['summary']))
+            {
+                $summary = htmlspecialchars($headline['summary'], ENT_QUOTES, 'UTF-8');
+                $section .= "<i>{$summary}</i>\n";
+            }
+
+            $section .= "\n";
             $number++;
         }
 
